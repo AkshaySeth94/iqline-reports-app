@@ -1,35 +1,26 @@
 {
   "schemaVersion": 1,
-  "runId": "jenkins-Agentic_SDLC-81",
-  "specRef": "spec-f2daf51c416d",
+  "runId": "jenkins-Agentic SDLC-84",
+  "specRef": "spec-7f59951be40b",
   "stages": {
     "spec": {
-      "status": "approved",
-      "ts": "2026-05-24T21:55:50Z"
+      "status": "done",
+      "ts": "2026-05-24T23:31:37.661Z"
     },
     "prd": {
-      "status": "approved",
-      "ts": "2026-05-24T22:01:22Z",
-      "commit": "29082acfabc9"
+      "status": "pending"
     },
     "architect": {
-      "status": "approved",
-      "ts": "2026-05-24T22:03:18Z",
-      "commit": "31990d697dbc"
+      "status": "pending"
     },
     "epics": {
-      "status": "approved",
-      "ts": "2026-05-24T22:14:18Z",
-      "commit": "68432d878198"
+      "status": "pending"
     },
     "dev": {
-      "status": "approved",
-      "ts": "2026-05-24T22:22:27Z",
-      "commit": "8df8a09d43f1"
+      "status": "pending"
     },
     "qa": {
-      "status": "approved",
-      "ts": "2026-05-24T23:15:14Z"
+      "status": "pending"
     }
   },
   "bugLoop": {
@@ -131,8 +122,21 @@
       "story": "Story-4.5",
       "prd": "NFR-7",
       "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-1.9",
+      "prd": "FR-17",
+      "arch": "ADR-creds"
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-24T23:13:38.493Z"
+  "updatedAt": "2026-05-24T23:31:37.661Z",
+  "runCount": 2,
+  "priorRuns": [
+    {
+      "specRef": "spec-f2daf51c416d",
+      "runId": "jenkins-Agentic_SDLC-81",
+      "completedAt": "2026-05-24T23:13:38.493Z"
+    }
+  ]
 }

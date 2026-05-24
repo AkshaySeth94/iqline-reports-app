@@ -15,3 +15,9 @@ Deliver: patient app, admin panel, database schema, REST APIs, and secure produc
 1. I need a static default otp for v1 and no sms gateway.
 2. Populate 1 admin user if none exists in mongo with 9999942496 as the phone number and Hello@123! as the password. 
 3. there will be no report file upload by admin. Just a UI panel in which we will intake the result of the test after which report will be visible on patients mobile app.
+
+---
+
+## Change request — Run #2 (2026-05-24)
+
+fix: ensure the patient login form, dashboard, and admin panel are functional with real form handlers and real chart data
