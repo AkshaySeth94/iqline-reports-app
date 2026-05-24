@@ -3,8 +3,8 @@
 ## 1. Project Context Analysis
 **Requirements overview**
 The system is a dual-interface web application for managing patient lab reports. It comprises two main subsystems:
-1.  **Patient Application**: A mobile-first web interface (FR-1 to FR-5) for patients to log in via OTP, view their lab reports, and see a trend chart of their glucose levels.
-2.  **Admin Panel**: A secure web interface (FR-6 to FR-11) for administrators to manage patient records and their associated lab reports.
+1.  **Patient Application**: A mobile-first web interface (FR-1 to FR-5, FR-12) for patients to log in via OTP, view their lab reports, and see a trend chart of their glucose levels.
+2.  **Admin Panel**: A secure web interface (FR-6 to FR-11, FR-13) for administrators to manage patient records and their associated lab reports.
 3.  **Backend API**: A central RESTful API that serves both the Patient Application and Admin Panel, handling business logic, authentication, and database interactions.
 
 **NFRs that drive architecture**
@@ -178,7 +178,7 @@ A vertical slice can be achieved by implementing in this order:
 ## 7. Validation
 **Coherence check:** The chosen technologies (NestJS, Next.js, MongoDB) are highly compatible and form a modern, coherent MERN stack. The ADRs are consistent with each other.
 **Requirements coverage:**
--   **FR-1 to FR-11**: All functional requirements are mapped to components in the project structure and addressed by the ADRs.
+-   **FR-1 to FR-13**: All functional requirements are mapped to components in the project structure and addressed by the ADRs. FR-12 and FR-13, which mandate end-to-end functionality, are covered by the overall client-server architecture and the implementation of the defined API contracts (ADR-contracts).
 -   **NFR-1 (HTTPS)**: Handled at the deployment/ingress level, outside the application code.
 -   **NFR-2 (RBAC)**: Covered by ADR-auth.
 -   **NFR-3 (Validation)**: Covered by ADR-contracts.

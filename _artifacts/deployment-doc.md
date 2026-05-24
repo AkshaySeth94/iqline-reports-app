@@ -116,8 +116,8 @@ The application requires two sets of environment variables, one for each compone
 ### Backend (Node 22 LTS, NestJS 11)
 | Package                    | Version    | Why                                      |
 |----------------------------|------------|------------------------------------------|
-| @nestjs/common             | ^10.0.0    | NestJS core                              |
-| @nestjs/core               | ^10.0.0    | NestJS core                              |
+| @nestjs/common             | ^11.0.0    | NestJS core                              |
+| @nestjs/core               | ^11.0.0    | NestJS core                              |
 | @nestjs/config             | ^3.2.2     | Environment variable management          |
 | @nestjs/jwt                | ^10.2.0    | JWT authentication                       |
 | @nestjs/mongoose           | ^10.0.6    | Mongoose integration for MongoDB         |
@@ -135,9 +135,9 @@ The application requires two sets of environment variables, one for each compone
 ### Backend devDependencies
 | Package                    | Version    | Why                                      |
 |----------------------------|------------|------------------------------------------|
-| @nestjs/cli                | ^10.0.0    | NestJS CLI tools                         |
-| @nestjs/schematics         | ^10.0.0    | NestJS code generation                   |
-| @nestjs/testing            | ^10.0.0    | Testing utilities                        |
+| @nestjs/cli                | ^11.0.0    | NestJS CLI tools                         |
+| @nestjs/schematics         | ^11.0.0    | NestJS code generation                   |
+| @nestjs/testing            | ^11.0.0    | Testing utilities                        |
 | @types/bcryptjs            | ^2.4.6     | Type definitions for bcryptjs            |
 | @types/express             | ^4.17.17   | Type definitions for Express             |
 | @types/jest                | ^29.5.2    | Type definitions for Jest                |
@@ -167,11 +167,17 @@ The application requires two sets of environment variables, one for each compone
 ### Frontend devDependencies
 | Package                    | Version    | Why                                      |
 |----------------------------|------------|------------------------------------------|
+| @testing-library/jest-dom  | ^6.4.0     | DOM-aware assertions for Jest            |
+| @testing-library/react     | ^16.0.0    | Component-rendering for tests            |
+| @testing-library/user-event| ^14.5.0    | Simulate user interactions               |
+| @types/jest                | ^29.5.0    | Type definitions for Jest                |
 | @types/node                | ^20        | Type definitions for Node.js             |
 | @types/react               | ^18        | Type definitions for React               |
 | @types/react-dom           | ^18        | Type definitions for React DOM           |
 | eslint                     | ^8         | Linter                                   |
 | eslint-config-next         | 14.2.3     | ESLint configuration for Next.js         |
+| jest                       | ^29.7.0    | Test runner                              |
+| jest-environment-jsdom     | ^29.7.0    | DOM environment for component tests      |
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests
