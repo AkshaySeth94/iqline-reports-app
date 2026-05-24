@@ -13,6 +13,8 @@
 *   **FR-9:** Admin Creates a Patient
 *   **FR-10:** Admin Creates a Report for a Patient
 *   **FR-11:** Admin Edits a Report
+*   **FR-12:** Functional Patient Login and Dashboard
+*   **FR-13:** Functional Admin Panel
 
 **Non-Functional Requirements (NFRs):**
 *   **NFR-1:** Secure Communication
@@ -37,6 +39,8 @@
 | FR-9        | Epic 2 / Story 2.3 |
 | FR-10       | Epic 2 / Story 2.4 |
 | FR-11       | Epic 2 / Story 2.5 |
+| FR-12       | Epic 3 / Story 3.6 |
+| FR-13       | Epic 2 / Story 2.6 |
 | NFR-2       | Epic 4 / Story 4.2 |
 | NFR-3       | Epic 4 / Story 4.1 |
 | NFR-4       | Epic 4 / Story 4.4 |
@@ -99,7 +103,7 @@ So that I can log in to the Admin Panel without manual database intervention.
 ## Epic 2: Admin Portal for Report Management
 
 This epic delivers the complete workflow for the Admin persona, Anand. After this epic, an Admin can log in securely, create new patient records, and then create and edit Glucose Marker Reports for those patients. This provides a fully functional administrative interface for managing the core data of the application.
-**FRs covered:** FR-6, FR-8, FR-9, FR-10, FR-11
+**FRs covered:** FR-6, FR-8, FR-9, FR-10, FR-11, FR-13
 
 ### Story 2.1: Implement Admin Login
 `traces: { prd: FR-6, arch: ADR-auth }`
@@ -182,10 +186,35 @@ So that I can correct any errors.
 **Then** the report record in the database is updated with the new value
 **And** the updated information is visible in the Admin Panel.
 
+### Story 2.6: Implement Functional Admin Panel Forms
+`traces: { prd: FR-13, arch: ADR-contracts }`
+
+As an Admin (Anand),
+I want the forms in the Admin Panel to be fully functional and connected to the backend,
+So that I can manage patient and report data effectively.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Admin login page
+**When** I fill in my credentials and click "Login"
+**Then** a POST request is sent to the backend authentication API with my credentials.
+**Given** I am logged in as an Admin and on the "Create Patient" page
+**When** I fill out the form and click "Create"
+**Then** a POST request is sent to the backend API to create a new patient record with the form data.
+**Given** I am logged in as an Admin and on the "Create Report" page for a patient
+**When** I fill out the form and click "Submit"
+**Then** a POST request is sent to the backend API to create a new report record with the form data.
+**Given** any of the above form submissions results in a successful API response
+**When** the response is received
+**Then** a success message is displayed to me in the UI.
+**Given** any of the above form submissions results in a failed API response
+**When** the response is received
+**Then** an error message from the API is displayed to me in the UI.
+
 ## Epic 3: Patient Dashboard & Report Visualization
 
 This epic delivers the complete workflow for the Patient persona, Priya. After this epic, a Patient can log in using their phone number and a static OTP, view a list of their reports, see the full details of any report, and visualize their glucose trends over time on a chart. This fulfills the core value proposition for the end-user.
-**FRs covered:** FR-1, FR-2, FR-3, FR-4, FR-5
+**FRs covered:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-12
 
 ### Story 3.1: Implement Patient Login
 `traces: { prd: FR-1, arch: ADR-auth }`
@@ -267,6 +296,24 @@ So that I can easily visualize my health trends.
 **Then** I see a bar chart with three bars
 **And** the X-axis is labeled with the report dates and the Y-axis represents the glucose value
 **And** the height of the bars corresponds to their respective glucose values.
+
+### Story 3.6: Implement Functional Patient Dashboard
+`traces: { prd: FR-12, arch: ADR-runtime }`
+
+As a Patient (Priya),
+I want my login form and dashboard to be fully functional and display real data from the backend,
+So that I can see my actual lab results and trends.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Patient login page
+**When** I submit my phone number and OTP
+**Then** a POST request is sent to the backend authentication API.
+**Given** I have successfully logged in
+**When** the Patient Dashboard page loads
+**Then** a GET request is sent to the backend API to fetch my reports.
+**And** the report list is dynamically rendered on the page using the data received from the API.
+**And** the glucose trend chart is dynamically rendered using the report data received from the API.
 
 ## Epic 4: Application Hardening & Security
 
