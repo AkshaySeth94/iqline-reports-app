@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -15,5 +15,11 @@ export class UsersController {
   @Roles(UserRole.Admin)
   createPatient(@Body() createPatientDto: CreatePatientDto): Promise<User> {
     return this.usersService.createPatient(createPatientDto);
+  }
+
+  @Get('patients')
+  @Roles(UserRole.Admin)
+  findAllPatients(): Promise<User[]> {
+    return this.usersService.findAllPatients();
   }
 }

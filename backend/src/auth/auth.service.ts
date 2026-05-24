@@ -45,7 +45,12 @@ export class AuthService {
   }
 
   async loginAdmin(user: any): Promise<LoginResponseDto> {
-    const payload = { phone: user.phone, sub: user._id, role: user.role };
+    const payload = {
+      name: user.name,
+      phone: user.phone,
+      sub: user._id,
+      role: user.role,
+    };
     await this.auditService.log(user._id.toString(), 'LOGIN_SUCCESS', {
       role: UserRole.Admin,
     });
@@ -83,6 +88,7 @@ export class AuthService {
     }
 
     const payload = {
+      name: patient.name,
       phone: patient.phone,
       sub: patient._id.toString(),
       role: patient.role,

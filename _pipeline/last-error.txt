@@ -1,0 +1,16 @@
+Dev stage failed the frontend placeholder guard.
+
+Dev stage produced frontend files that still contain placeholder text — the implementation pass never replaced the skeleton stubs with real interactive UI. Each hit below must be replaced with functional code that satisfies the corresponding Story's ACs (form inputs, fetched data render, button handlers, real charts, etc.) — NOT prose explaining what should be there.
+
+  frontend/src/contexts/AuthContext.tsx:
+    line 68 ["this is a skeleton/placeholder/stub" admission]
+      name: 'User', // Name is not in token, this is a placeholder
+
+Good replacement examples:
+  ❌ <p>Login form will go here.</p>
+  ✅ <form onSubmit={handleSubmit}><input name="phone" .../>...</form>
+
+  ❌ <p>Chart will be rendered here.</p>
+  ✅ <BarChart data={data}><XAxis dataKey="date"/><YAxis/>...</BarChart>
+
+Re-emit every frontend file whose stub you have replaced. Frontend page files are NOT covered by the OMISSION CONTRACT in this case — placeholder pages explicitly need to be overwritten.
