@@ -4,8 +4,8 @@
   "specRef": "spec-f2daf51c416d",
   "stages": {
     "spec": {
-      "status": "done",
-      "ts": "2026-05-24T21:55:47.144Z"
+      "status": "approved",
+      "ts": "2026-05-24T21:55:50Z"
     },
     "prd": {
       "status": "pending"
