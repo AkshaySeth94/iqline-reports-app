@@ -23,13 +23,9 @@
       "commit": "68432d878198"
     },
     "dev": {
-      "status": "awaiting_approval",
-      "ts": "2026-05-24T22:20:37.565Z",
-      "commit": "8df8a09d43f1",
-      "awaitingPreSha": "5944b4bba3d3e70c446add769c70def41f4015ee",
-      "awaitingPostSha": "d3bbedda44b7afb81db8b565d67c56d9b409523c",
-      "awaitingSpecRef": "spec-f2daf51c416d",
-      "awaitingAt": "2026-05-24T22:20:41Z"
+      "status": "approved",
+      "ts": "2026-05-24T22:22:27Z",
+      "commit": "8df8a09d43f1"
     },
     "qa": {
       "status": "pending"
