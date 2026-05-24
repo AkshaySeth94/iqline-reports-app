@@ -1,0 +1,16 @@
+{
+  "runs": [
+    {
+      "tool": "semgrep",
+      "findings": [
+        {
+          "source": "semgrep",
+          "rule": "typescript.nestjs.security.audit.nestjs-header-cors-any.nestjs-header-cors-any",
+          "severity": "medium",
+          "path": "/Users/ajax/.jenkins/workspace/Agentic SDLC/_target/backend/src/main.ts",
+          "message": "Access-Control-Allow-Origin response header is set to \"*\". This will disable CORS Same Origin Policy restrictions."
+        }
+      ]
+    }
+  ]
+}
