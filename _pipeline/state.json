@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "runId": "jenkins-Agentic_SDLC-81",
+  "specRef": "spec-f2daf51c416d",
+  "stages": {
+    "spec": {
+      "status": "done",
+      "ts": "2026-05-24T21:55:47.144Z"
+    },
+    "prd": {
+      "status": "pending"
+    },
+    "architect": {
+      "status": "pending"
+    },
+    "epics": {
+      "status": "pending"
+    },
+    "dev": {
+      "status": "pending"
+    },
+    "qa": {
+      "status": "pending"
+    }
+  },
+  "bugLoop": {
+    "count": 0,
+    "cap": 5
+  },
+  "traceability": [
+    {
+      "story": "Story-1.9",
+      "prd": "FR-17",
+      "arch": "ADR-creds"
+    }
+  ],
+  "createdAt": "2026-05-24T21:55:47.142Z",
+  "updatedAt": "2026-05-24T21:55:47.144Z"
+}
