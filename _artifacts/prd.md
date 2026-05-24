@@ -140,6 +140,29 @@ An Admin can edit the details of an existing Glucose Marker Report.
 - The Admin can select an existing report for a patient and modify its Report Date, Glucose Value, Status, and Notes.
 - Changes are saved and are immediately reflected when the Patient views the report.
 
+### 4.5 End-to-End Functionality
+**Description:** This feature ensures that the user interfaces for both Patients and Admins are fully interactive and connected to the backend services. Forms will correctly submit data, and data displays like charts and lists will be populated with real-time information from the database, replacing any static or mock data used during initial UI development.
+
+**Functional Requirements:**
+
+#### FR-12: Functional Patient Login and Dashboard
+The Patient login form and dashboard components shall be fully functional and integrated with the backend.
+
+**Consequences (testable):**
+- When a Patient submits their phone number and OTP via the login form, a request is sent to the backend authentication API.
+- Upon successful login, the Patient Dashboard fetches the logged-in Patient's report data from the backend API.
+- The report list on the dashboard is dynamically rendered based on the data received from the API.
+- The glucose trend chart is dynamically rendered using the report data received from the API.
+
+#### FR-13: Functional Admin Panel
+The Admin Panel forms for login, patient creation, and report management shall be fully functional and integrated with the backend.
+
+**Consequences (testable):**
+- When an Admin submits their credentials via the login form, a request is sent to the backend authentication API.
+- When an Admin submits the "Create Patient" form, the form data is sent via an API request to create a new patient record in the database.
+- When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
+- The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
+
 ## 5. Non-Goals (Explicit)
 *   Integration with any SMS gateway for OTP delivery.
 *   Patient self-registration or profile management (e.g., changing their phone number).
@@ -152,7 +175,7 @@ An Admin can edit the details of an existing Glucose Marker Report.
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-11) listed above.
+*   All features and functional requirements (FR-1 to FR-13) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
 *   Basic security, logging, and architectural foundations for future expansion.
@@ -165,8 +188,8 @@ An Admin can edit the details of an existing Glucose Marker Report.
 
 ## 7. Success Metrics
 ### Primary
-*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5)
-*   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10)
+*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12)
+*   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10, FR-13)
 
 ### Secondary
 *   **Patient Adoption**: 80% of newly created Patients log in at least once within 72 hours of their first report being created.
