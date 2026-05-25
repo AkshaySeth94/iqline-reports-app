@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "runId": "jenkins-Agentic SDLC-100",
+  "runId": "jenkins-Agentic SDLC-101-prep",
   "specRef": "spec-118cc64c69f3",
   "stages": {
     "spec": {
@@ -28,8 +28,7 @@
       "commit": "6c3ef8ee8ca3"
     },
     "qa": {
-      "status": "approved",
-      "ts": "2026-05-25T14:42:50Z"
+      "status": "pending"
     }
   },
   "bugLoop": {
