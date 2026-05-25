@@ -5,7 +5,7 @@ export default function HomePage() {
     <main className="landing">
       <div className="landing-inner">
         <span className="landing-eyebrow">
-          <span className="brand-mark" style={{ width: 18, height: 18, fontSize: 10 }}>LD</span>
+          <span className="brand-mark size-[18px] text-[10px]">LD</span>
           LabDash
         </span>
         <h1 className="landing-title">Your lab reports, beautifully simplified.</h1>

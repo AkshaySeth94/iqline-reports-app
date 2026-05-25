@@ -1,16 +1,14 @@
-Dev stage failed the frontend placeholder guard.
+Dev stage failed the inline-style density guard.
 
-Dev stage produced frontend files that still contain placeholder text — the implementation pass never replaced the skeleton stubs with real interactive UI. Each hit below must be replaced with functional code that satisfies the corresponding Story's ACs (form inputs, fetched data render, button handlers, real charts, etc.) — NOT prose explaining what should be there.
+Dev stage produced frontend files that bypass the declared styling system — each file below has > 5 inline style={{...}} attributes, indicating bare-HTML output with no design system.
 
-  frontend/src/contexts/AuthContext.tsx:
-    line 68 ["this is a skeleton/placeholder/stub" admission]
-      name: 'User', // Name is not in token, this is a placeholder
+  frontend/src/components/GlucoseChart.tsx: 6 inline style={{...}} occurrences (example lines: 32, 42, 43)
 
-Good replacement examples:
-  ❌ <p>Login form will go here.</p>
-  ✅ <form onSubmit={handleSubmit}><input name="phone" .../>...</form>
+The Architect declared a styling system in deployment-doc.md (Tailwind / shadcn-ui / CSS modules / etc.). Replace every `style={{ ... }}` with the equivalent in that system:
 
-  ❌ <p>Chart will be rendered here.</p>
-  ✅ <BarChart data={data}><XAxis dataKey="date"/><YAxis/>...</BarChart>
+  ❌  <button style={{ padding: 8, background: '#3b82f6', color: 'white', borderRadius: 4 }}>
+  ✅  <button className="px-2 py-2 bg-blue-500 text-white rounded">     // Tailwind
+  ✅  <Button variant="primary" size="sm">                                  // shadcn-ui / Mantine
+  ✅  <button className={styles.primaryButton}>                            // CSS Modules
 
-Re-emit every frontend file whose stub you have replaced. Frontend page files are NOT covered by the OMISSION CONTRACT in this case — placeholder pages explicitly need to be overwritten.
+Legitimate dynamic inline styles (\`style={{ width: \`${pct}%\` }}\`) are fine and contribute to the threshold sparingly — but every static color/spacing/border/font value goes in the declared system, not in JSX style props. Re-emit the listed files using the styling system Architect chose.

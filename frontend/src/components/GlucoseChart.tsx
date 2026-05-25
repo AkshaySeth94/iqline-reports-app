@@ -20,29 +20,19 @@ interface GlucoseChartProps {
   data: ChartData[];
 }
 
-const AXIS_COLOR = '#8a93a1';
-const GRID_COLOR = '#e4e8ef';
-const LINE_COLOR = '#0f766e';
+const AXIS_COLOR = '#94a3b8';
+const GRID_COLOR = '#334155';
+const LINE_COLOR = '#14b8a6';
 
 function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) return null;
   const value = payload[0].value;
   return (
-    <div
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e4e8ef',
-        borderRadius: 10,
-        padding: '10px 12px',
-        boxShadow: '0 6px 24px -8px rgba(15, 23, 42, 0.18)',
-        fontSize: 12,
-        color: '#0b1220',
-      }}
-    >
-      <div style={{ color: '#5b6573', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 15, fontWeight: 600 }}>
+    <div className="rounded-md border border-slate-600 bg-slate-800 px-3 py-2.5 text-xs text-slate-50 shadow-lg">
+      <div className="mb-1 text-slate-400">{label}</div>
+      <div className="text-[15px] font-semibold">
         {value}
-        <span style={{ color: '#8a93a1', marginLeft: 4, fontWeight: 500 }}>mg/dL</span>
+        <span className="ml-1 font-medium text-slate-400">mg/dL</span>
       </div>
     </div>
   );
@@ -51,7 +41,7 @@ function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) 
 export default function GlucoseChart({ data }: GlucoseChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="empty" style={{ padding: '48px 16px' }}>
+      <div className="empty px-4 py-12">
         <div className="empty-title">No chart data yet</div>
         <div>Glucose trends will appear here once you have at least one report.</div>
       </div>
@@ -59,7 +49,7 @@ export default function GlucoseChart({ data }: GlucoseChartProps) {
   }
 
   return (
-    <div style={{ width: '100%', height: 280 }}>
+    <div className="h-[280px] w-full">
       <ResponsiveContainer>
         <AreaChart
           data={data}

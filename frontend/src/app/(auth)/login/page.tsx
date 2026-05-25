@@ -16,7 +16,7 @@ export default function LoginPage() {
         <div className="auth-brand">
           <span className="brand-mark">LD</span>
           <div>
-            <div style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>LabDash</div>
+            <div className="font-semibold tracking-tight">LabDash</div>
             <div className="text-sm muted">Your lab reports, simplified</div>
           </div>
         </div>
@@ -25,10 +25,9 @@ export default function LoginPage() {
         <p className="auth-sub">Choose how you&apos;d like to continue.</p>
 
         <div
-          className="segmented"
+          className="segmented mb-6"
           role="tablist"
           aria-label="Login type"
-          style={{ marginBottom: 'var(--space-6)' }}
         >
           <button
             type="button"
