@@ -13,9 +13,13 @@
       "commit": "8527f29b99f8"
     },
     "architect": {
-      "status": "done",
+      "status": "awaiting_approval",
       "ts": "2026-05-25T14:14:15.045Z",
-      "commit": "553154764916"
+      "commit": "553154764916",
+      "awaitingPreSha": "9a659b915b4d1ebab38cba140e6f5530f84be212",
+      "awaitingPostSha": "df61af4c8118f6c6afe926ee4def17d1accbce9d",
+      "awaitingSpecRef": "spec-118cc64c69f3",
+      "awaitingAt": "2026-05-25T14:14:27Z"
     },
     "epics": {
       "status": "pending"
