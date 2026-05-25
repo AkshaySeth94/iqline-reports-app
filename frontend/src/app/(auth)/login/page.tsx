@@ -11,14 +11,48 @@ export default function LoginPage() {
   const [formType, setFormType] = useState<FormType>('patient');
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
-      <div>
-        <button onClick={() => setFormType('patient')}>Patient Login</button>
-        <button onClick={() => setFormType('admin')}>Admin Login</button>
+    <main className="auth-page">
+      <div className="auth-card">
+        <div className="auth-brand">
+          <span className="brand-mark">LD</span>
+          <div>
+            <div style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>LabDash</div>
+            <div className="text-sm muted">Your lab reports, simplified</div>
+          </div>
+        </div>
+
+        <h1 className="auth-heading">Sign in to LabDash</h1>
+        <p className="auth-sub">Choose how you&apos;d like to continue.</p>
+
+        <div
+          className="segmented"
+          role="tablist"
+          aria-label="Login type"
+          style={{ marginBottom: 'var(--space-6)' }}
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-pressed={formType === 'patient'}
+            className="segmented-btn"
+            onClick={() => setFormType('patient')}
+          >
+            Patient
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-pressed={formType === 'admin'}
+            className="segmented-btn"
+            onClick={() => setFormType('admin')}
+          >
+            Admin
+          </button>
+        </div>
+
+        {formType === 'patient' ? <PatientLoginForm /> : <AdminLoginForm />}
       </div>
-      <hr style={{ margin: '20px 0' }} />
-      {formType === 'patient' ? <PatientLoginForm /> : <AdminLoginForm />}
-    </div>
+    </main>
   );
 }
 
@@ -38,8 +72,8 @@ function PatientLoginForm() {
     try {
       await api.patientLogin(phone);
       setStep('otp');
-    } catch (err: any) {
-      setError(err.message || 'Failed to send OTP request.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send OTP request.');
     } finally {
       setLoading(false);
     }
@@ -53,54 +87,77 @@ function PatientLoginForm() {
       const { accessToken } = await api.verifyOtp(phone, otp);
       auth?.login(accessToken);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Invalid OTP.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid OTP.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (step === 'phone') {
+    return (
+      <form onSubmit={handlePhoneSubmit} className="stack stack-4">
+        <div className="field">
+          <label className="field-label" htmlFor="patient-phone">Phone number</label>
+          <input
+            id="patient-phone"
+            className="input"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+            pattern="\d{10}"
+            placeholder="10-digit phone number"
+            inputMode="numeric"
+            autoComplete="tel"
+          />
+        </div>
+        {error && <div className="alert alert-error">{error}</div>}
+        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          {loading ? 'Sending OTP…' : 'Send OTP'}
+        </button>
+      </form>
+    );
+  }
+
   return (
-    <div>
-      <h2>Patient Login</h2>
-      {step === 'phone' ? (
-        <form onSubmit={handlePhoneSubmit}>
-          <div>
-            <label>Phone Number:</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              pattern="\d{10}"
-              placeholder="10-digit phone number"
-            />
-          </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Get OTP'}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={handleOtpSubmit}>
-          <p>Enter OTP for {phone}. (Hint: it&apos;s 123456)</p>
-          <div>
-            <label>OTP:</label>
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-              pattern="\d{6}"
-              placeholder="6-digit OTP"
-            />
-          </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Verifying...' : 'Login'}
-          </button>
-        </form>
-      )}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+    <form onSubmit={handleOtpSubmit} className="stack stack-4">
+      <div className="field">
+        <label className="field-label" htmlFor="patient-otp">One-time passcode</label>
+        <input
+          id="patient-otp"
+          className="input"
+          type="text"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          required
+          pattern="\d{6}"
+          placeholder="6-digit OTP"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+        />
+        <span className="field-hint">Sent to {phone}</span>
+      </div>
+      {error && <div className="alert alert-error">{error}</div>}
+      <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+        {loading ? 'Verifying…' : 'Verify & sign in'}
+      </button>
+      <button
+        type="button"
+        className="btn btn-ghost btn-block"
+        onClick={() => {
+          setStep('phone');
+          setOtp('');
+          setError('');
+        }}
+      >
+        Use a different number
+      </button>
+      <div className="auth-hint">
+        Demo OTP: <code>123456</code>
+      </div>
+    </form>
   );
 }
 
@@ -120,40 +177,43 @@ function AdminLoginForm() {
       const { accessToken } = await api.adminLogin(phone, password);
       auth?.login(accessToken);
       router.push('/panel');
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Admin Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Phone Number:</label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+    <form onSubmit={handleSubmit} className="stack stack-4">
+      <div className="field">
+        <label className="field-label" htmlFor="admin-phone">Phone number</label>
+        <input
+          id="admin-phone"
+          className="input"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+          autoComplete="username"
+        />
+      </div>
+      <div className="field">
+        <label className="field-label" htmlFor="admin-password">Password</label>
+        <input
+          id="admin-password"
+          className="input"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+      </div>
+      {error && <div className="alert alert-error">{error}</div>}
+      <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+        {loading ? 'Signing in…' : 'Sign in'}
+      </button>
+    </form>
   );
 }
