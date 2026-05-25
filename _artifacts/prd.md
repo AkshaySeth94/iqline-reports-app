@@ -213,9 +213,16 @@ None at this time. Decisions required for v1 have been made and are documented i
 *   **NFR-3: Input Validation**: All user-provided input on both the client and server must be validated to prevent common vulnerabilities like XSS and injection attacks.
 *   **NFR-4: Audit Logging**: The system must log key security events, including successful/failed logins for both roles and all report creation/modification events by Admins. The log must include the timestamp, actor (e.g., Admin phone number), and the action performed.
 *   **NFR-5: Rate Limiting**: Authentication endpoints (`/login`) must be rate-limited to 5 requests per minute per IP address to protect against brute-force attacks.
+*   **NFR-8: Data-at-Rest Encryption**: All sensitive Patient data, particularly health information and personally identifiable information (PII), must be encrypted at rest in the database.
 
 ### 10.2 Architecture
 *   **NFR-6: Scalability**: The architecture must be designed to allow for the addition of new report types in the future without requiring a full rewrite of the core application. This implies a flexible database schema for reports.
+*   **NFR-9: Performance Under Load**: The system must maintain acceptable performance as user load increases. API response times for patient-facing endpoints (e.g., fetching reports) must remain under 500ms at the 95th percentile with a simulated load of 100 concurrent users.
 
 ### 10.3 User Experience
 *   **NFR-7: Mobile-First Responsive UI**: The Patient-facing application must be designed for a mobile-first experience (e.g., viewport width 360px) and be fully responsive to work on common desktop browser resolutions. The Admin Panel must be functional on standard desktop resolutions (e.g., 1280px width and above).
+
+### 10.4 Observability
+*   **NFR-10: Application Logging**: The application backend must generate structured logs (e.g., JSON format) for key events, including application startup, API requests (with timings), and unhandled errors. Logs must not contain sensitive patient data (PII/PHI) or secrets in plain text.
+*   **NFR-11: Performance Monitoring**: The application must expose key performance metrics (e.g., request latency, error rates, CPU/memory usage) through a dedicated endpoint (e.g., `/metrics`) in a standard format like Prometheus exposition format.
+*   **NFR-12: Health Check Endpoint**: The application must provide a health check endpoint (e.g., `/healthz`) that returns an HTTP 200 OK status if the application is running and can connect to the database. It should return a non-200 status otherwise.
