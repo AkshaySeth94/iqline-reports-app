@@ -15,6 +15,7 @@
 *   **FR-11:** Admin Edits a Report
 *   **FR-12:** Functional Patient Login and Dashboard
 *   **FR-13:** Functional Admin Panel
+*   **FR-14:** Dark Theme UI
 
 **Non-Functional Requirements (NFRs):**
 *   **NFR-1:** Secure Communication
@@ -41,6 +42,7 @@
 | FR-11       | Epic 2 / Story 2.5 |
 | FR-12       | Epic 3 / Story 3.6 |
 | FR-13       | Epic 2 / Story 2.6 |
+| FR-14       | Epic 4 / Story 4.6 |
 | NFR-2       | Epic 4 / Story 4.2 |
 | NFR-3       | Epic 4 / Story 4.1 |
 | NFR-4       | Epic 4 / Story 4.4 |
@@ -318,7 +320,7 @@ So that I can see my actual lab results and trends.
 ## Epic 4: Application Hardening & Security
 
 This epic focuses on implementing the cross-cutting non-functional requirements that ensure the application is secure, robust, and provides a good user experience. It covers server-side validation, role-based access, protection against common attacks, audit logging, and mobile responsiveness.
-**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
+**FRs covered:** FR-14, NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
 
 ### Story 4.1: Implement Server-Side Input Validation
 `traces: { prd: NFR-3, arch: ADR-contracts }`
@@ -399,3 +401,24 @@ So that I can easily check my results on the go.
 **Given** I am viewing the same dashboard on a desktop with a 1280px wide viewport
 **When** I view the list of reports and the chart
 **Then** the layout adapts to use the available space effectively without looking stretched or broken.
+
+### Story 4.6: Implement Dark Theme Across the Application
+`traces: { prd: FR-14, arch: ADR-styling }`
+
+As a user (Priya or Anand),
+I want the application to have a dark theme,
+So that it is comfortable to view, especially in low-light conditions.
+
+**Acceptance Criteria:**
+
+**Given** I open any page in the Patient Application (e.g., login, dashboard)
+**When** the page renders
+**Then** the background is a dark color (e.g., near-black or dark grey) and the text is a light, high-contrast color (e.g., white or light grey).
+**And** interactive elements like buttons and form fields are styled consistently with the dark theme.
+**Given** I open any page in the Admin Panel (e.g., login, dashboard)
+**When** the page renders
+**Then** the background is a dark color and the text is a light, high-contrast color.
+**And** interactive elements are styled consistently with the dark theme.
+**Given** I am a Patient viewing my dashboard with a glucose trend chart
+**When** the chart renders
+**Then** the chart's colors (e.g., bars, axes, labels) are legible and aesthetically consistent with the dark theme.
