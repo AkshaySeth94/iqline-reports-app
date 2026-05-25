@@ -15,6 +15,7 @@
 *   **FR-11:** Admin Edits a Report
 *   **FR-12:** Functional Patient Login and Dashboard
 *   **FR-13:** Functional Admin Panel
+*   **FR-14:** Dark Theme UI
 
 **Non-Functional Requirements (NFRs):**
 *   **NFR-1:** Secure Communication
@@ -35,12 +36,14 @@
 | FR-5        | Epic 3 / Story 3.5 |
 | FR-6        | Epic 2 / Story 2.1 |
 | FR-7        | Epic 1 / Story 1.2 |
+| FR-7        | Epic 1 / Story 1.3 |
 | FR-8        | Epic 2 / Story 2.2 |
 | FR-9        | Epic 2 / Story 2.3 |
 | FR-10       | Epic 2 / Story 2.4 |
 | FR-11       | Epic 2 / Story 2.5 |
 | FR-12       | Epic 3 / Story 3.6 |
 | FR-13       | Epic 2 / Story 2.6 |
+| FR-14       | Epic 4 / Story 4.6 |
 | NFR-2       | Epic 4 / Story 4.2 |
 | NFR-3       | Epic 4 / Story 4.1 |
 | NFR-4       | Epic 4 / Story 4.4 |
@@ -318,7 +321,7 @@ So that I can see my actual lab results and trends.
 ## Epic 4: Application Hardening & Security
 
 This epic focuses on implementing the cross-cutting non-functional requirements that ensure the application is secure, robust, and provides a good user experience. It covers server-side validation, role-based access, protection against common attacks, audit logging, and mobile responsiveness.
-**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
+**FRs covered:** FR-14, NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
 
 ### Story 4.1: Implement Server-Side Input Validation
 `traces: { prd: NFR-3, arch: ADR-contracts }`
@@ -399,3 +402,23 @@ So that I can easily check my results on the go.
 **Given** I am viewing the same dashboard on a desktop with a 1280px wide viewport
 **When** I view the list of reports and the chart
 **Then** the layout adapts to use the available space effectively without looking stretched or broken.
+
+### Story 4.6: Implement Dark Theme
+`traces: { prd: FR-14, arch: ADR-styling }`
+
+As a user,
+I want the application to use a dark theme across all views,
+So that the interface is modern and comfortable to view in various lighting conditions.
+
+**Acceptance Criteria:**
+
+**Given** any page in the Patient or Admin application is loaded
+**When** the page renders
+**Then** the background color is dark (e.g., near-black or dark grey).
+**And** the primary text and icon colors are light (e.g., white or light grey) to ensure high contrast.
+**Given** a form is displayed in the Admin Panel or Patient app (e.g., login form)
+**When** the form is rendered
+**Then** all input fields and controls are styled to be clearly visible and interactive on the dark background.
+**Given** the Patient Dashboard is displayed
+**When** the glucose trend chart renders
+**Then** the chart's theme is adapted for a dark background, with legible axes, labels, and data visualization.
