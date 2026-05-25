@@ -41,8 +41,8 @@ Before the development stage runs, the wrapper executes these commands in order 
         "--app",
         "--src-dir",
         "--use-npm",
-        "--import-alias", "@/*",
-        "--no-tailwind",
+        "--tailwind",
+        "--no-import-alias",
         "--no-turbopack",
         "--skip-install"
       ],
@@ -50,13 +50,20 @@ Before the development stage runs, the wrapper executes these commands in order 
       "expected_files": [
         "frontend/package.json",
         "frontend/tsconfig.json",
-        "frontend/src/app/page.tsx"
+        "frontend/src/app/page.tsx",
+        "frontend/tailwind.config.ts"
       ],
       "timeoutSeconds": 180
     }
   ]
 }
 ```
+
+## Styling system
+-   **Tailwind CSS** (configured by create-next-app via `--tailwind`).
+-   All components use utility classes only — no inline `style={{...}}` for static values.
+-   Design tokens via `tailwind.config.ts` (extend `theme.colors`, `theme.spacing`) when the brand requires it.
+-   Optional companion: `clsx` for conditional class composition, `lucide-react` for icons.
 
 ## Build & Package Step
 
@@ -109,6 +116,7 @@ The application requires two sets of environment variables, one for each compone
 | `MONGODB_URI`            | `backend/.env.example`    | server  | YES     | Full connection string for the MongoDB database.  |
 | `JWT_SECRET`             | `backend/.env.example`    | server  | YES     | A long, random string for signing JWTs.           |
 | `PORT`                   | `backend/.env.example`    | server  | no      | Port for the backend API to listen on (e.g., 3001). |
+| `LOG_LEVEL`              | `backend/.env.example`    | server  | no      | Log level (e.g., 'info', 'debug'). Defaults to 'info'. |
 | `NEXT_PUBLIC_API_BASE_URL` | `frontend/.env.example`   | browser | no      | The public URL of the backend API (e.g., `http://localhost:3001`). |
 
 ## Dependencies
@@ -122,13 +130,18 @@ The application requires two sets of environment variables, one for each compone
 | @nestjs/jwt                | ^10.2.0    | JWT authentication                       |
 | @nestjs/mongoose           | ^10.0.6    | Mongoose integration for MongoDB         |
 | @nestjs/passport           | ^10.0.3    | Authentication strategies                |
+| @nestjs/terminus           | ^10.2.3    | Health checks (NFR-15)                   |
 | @nestjs/throttler          | ^5.1.2     | Rate limiting (NFR-5)                    |
 | bcryptjs                   | ^2.4.3     | Password hashing for Admin users         |
 | class-transformer          | ^0.5.1     | DTO transformation                       |
 | class-validator            | ^0.14.1    | DTO validation (NFR-3)                   |
+| helmet                     | ^7.1.0     | Secure HTTP headers (NFR-10)             |
 | mongoose                   | ^8.4.0     | MongoDB ODM                              |
+| nest-pino                  | ^4.0.0     | Structured logging (NFR-13)              |
 | passport                   | ^0.7.0     | Authentication middleware                |
 | passport-jwt               | ^4.0.1     | JWT strategy for Passport                |
+| pino-http                  | ^9.0.0     | Pino middleware for HTTP requests        |
+| prom-client                | ^15.1.2    | Prometheus metrics (NFR-14)              |
 | reflect-metadata           | ^0.2.0     | Required for NestJS                      |
 | rxjs                       | ^7.8.1     | Required for NestJS                      |
 
@@ -163,6 +176,11 @@ The application requires two sets of environment variables, one for each compone
 | react                      | ^18        | UI library                               |
 | react-dom                  | ^18        | DOM renderer for React                   |
 | recharts                   | ^2.12.7    | Charting library for glucose trends (FR-5) |
+| tailwindcss                | ^3.4.1     | Styling system                           |
+| postcss                    | ^8.4.38    | Tailwind CSS dependency                  |
+| autoprefixer               | ^10.4.19   | Tailwind CSS dependency                  |
+| clsx                       | ^2.1.1     | Conditional class composition            |
+| lucide-react               | ^0.395.0   | Icon library                             |
 
 ### Frontend devDependencies
 | Package                    | Version    | Why                                      |
@@ -181,11 +199,11 @@ The application requires two sets of environment variables, one for each compone
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests
--   The backend should expose a `GET /health` endpoint that returns a `200 OK` status if the API is running and can connect to the database.
+-   The backend exposes a `GET /health` endpoint (implemented with `@nestjs/terminus`) that returns a `200 OK` status with details about dependencies (e.g., database connection).
 -   After deployment, a smoke test should involve:
-    1.  Pinging the `/health` endpoint.
+    1.  Pinging the `/health` endpoint and verifying a successful response.
     2.  Attempting to load the frontend's main page.
-    3.  Attempting an Admin login with invalid credentials to verify the API is responding.
+    3.  Attempting an Admin login with invalid credentials to verify the API is responding correctly.
 
 ## Rollback Procedure
 If a deployment fails health checks or introduces a critical regression, roll back by deploying the previously known-good Docker image tag.
