@@ -14,7 +14,7 @@ The dominant architectural constraint is **Security**. This is driven by multipl
 -   **NFR-3: Input Validation**: All data from clients must be rigorously validated on the server side.
 -   **NFR-4: Audit Logging**: Key events must be logged for security and compliance.
 
-**Scalability (NFR-6)** is a secondary driver, influencing the database schema to accommodate future report types without major refactoring.
+**Scalability (NFR-6)** and **Observability (NFR-13, NFR-14, NFR-15)** are also key drivers, influencing the database schema and requiring dedicated endpoints and structured logging for monitoring.
 
 **Scale & complexity**
 The project is of low complexity, involving approximately 3-4 core data models (User, Report, AuditLog). The architecture consists of three primary components: a Next.js frontend, a NestJS backend, and a MongoDB database.
@@ -28,7 +28,7 @@ The project is of low complexity, involving approximately 3-4 core data models (
 **Cross-cutting concerns**
 -   **Auditability**: Handled by a dedicated logging mechanism for security-sensitive actions (NFR-4).
 -   **Security**: Addressed via RBAC, input validation, rate limiting, and secure session management.
--   **Observability**: Achieved through structured JSON logging to stdout from the backend.
+-   **Observability**: Achieved through structured JSON logging, health checks, and metrics endpoints.
 -   **Cost**: The choice of a consolidated monorepo and a single container deployment model aims to minimize operational overhead.
 
 ## 2. Starter / Foundation
@@ -37,7 +37,7 @@ The foundation is a TypeScript-based monorepo containing a Next.js frontend and 
 -   **Backend API**: **NestJS 11.0**. It provides a structured, modular architecture that is ideal for building maintainable and scalable APIs.
     -   Scaffold command: `npx --yes @nestjs/cli@latest new backend --skip-git --package-manager npm`
 -   **Web Frontend**: **Next.js 14.2**. It will serve both the Patient Application and the Admin Panel. Its App Router and server-side rendering capabilities are well-suited for this project.
-    -   Scaffold command: `npx --yes create-next-app@latest frontend --typescript --eslint --app --src-dir --use-npm --import-alias "@/*" --no-tailwind --no-turbopack`
+    -   Scaffold command: `npx --yes create-next-app@latest frontend --typescript --eslint --app --src-dir --use-npm --import-alias "@/*" --tailwind --no-turbopack`
 -   **Database Access**: **Mongoose** with `@nestjs/mongoose`. This is the idiomatic choice for integrating MongoDB with NestJS.
 
 The following decisions are inherited from these foundations:
@@ -84,6 +84,21 @@ The following decisions are inherited from these foundations:
 **Rationale:** This provides strong type safety and enforces the input validation requirement (NFR-3) at the application's entry point, preventing invalid data from reaching the business logic. It serves as a clear, self-documenting contract between the frontend and backend.
 **Affects:** Backend (Controllers), Frontend (API client), FR-9, FR-10, FR-11.
 
+### ADR-observability: Comprehensive Observability Stack
+**Decision:** The backend application will provide a comprehensive observability stack. This includes: (1) structured JSON logging to `stdout`, (2) a health check endpoint at `/healthz`, (3) a metrics endpoint at `/metrics` in Prometheus format, and (4) support for distributed tracing propagation. Log verbosity will be configurable via a `LOG_LEVEL` environment variable.
+**Rationale:** This directly implements the full suite of observability NFRs (NFR-13, NFR-14, NFR-15, NFR-18, NFR-23). It provides operators with the necessary tools—the "three pillars of observability" (logs, metrics, traces)—to monitor application health, diagnose issues, and analyze performance in a production environment. Using standards like JSON, Prometheus format, and W3C Trace Context ensures compatibility with modern cloud-native monitoring tools.
+**Affects:** Backend application. Requires adding new dependencies and modules for terminus (health), prom-client (metrics), and a structured logger like pino.
+
+### ADR-security-hardening: Application Security Measures
+**Decision:** The application will implement targeted security hardening measures, including rate limiting on all authentication endpoints and a dedicated audit log for security-sensitive events.
+**Rationale:** This addresses specific, critical NFRs. Rate limiting (NFR-5) is a primary defense against brute-force login attacks. An immutable audit log (NFR-4) provides a clear, persistent record of significant actions (e.g., login success/failure, report creation/modification) for security analysis and compliance purposes. These measures are fundamental to protecting user data and system integrity.
+**Affects:** Backend (Auth module, Report module). Requires `@nestjs/throttler` for rate limiting and a new `AuditLog` model and service.
+
+### ADR-runtime-resilience: Graceful Shutdown and Connection Management
+**Decision:** The NestJS application will enable graceful shutdown hooks to finish processing in-flight requests before exiting. It will also leverage Mongoose's built-in connection pooling to manage database connections efficiently.
+**Rationale:** This enhances system reliability and performance. Graceful shutdown (NFR-22) is crucial for zero-downtime deployments, preventing abrupt disconnections and data corruption. Explicitly relying on connection pooling (NFR-21) prevents database connection exhaustion under load and reduces request latency.
+**Affects:** Backend (`main.ts` for shutdown hooks), database interaction layer.
+
 ## 4. Implementation Patterns & Consistency Rules
 **Naming conventions**
 -   **Files/Directories**: `kebab-case` (e.g., `user.service.ts`, `admin-panel`).
@@ -124,7 +139,7 @@ export class CreateReportDto {
 ```
 
 **Process conventions**
--   **Logging**: The backend will log JSON-formatted strings to `stdout`.
+-   **Logging**: The backend will log JSON-formatted strings to `stdout`, as defined in ADR-observability.
 -   **Error Handling**: The backend API will return standard HTTP status codes (e.g., 400 for validation errors, 401 for unauthorized, 403 for forbidden, 404 for not found, 500 for server errors). Error responses will have a consistent JSON shape: `{ "statusCode": number, "message": string | string[], "error": string }`.
 -   **Commit Messages**: Conventional Commits standard (e.g., `feat: add report creation endpoint`).
 
@@ -135,40 +150,43 @@ The monorepo will have the following high-level structure:
 .
 ├── _artifacts/
 ├── _pipeline/
-│   └── build.Dockerfile        # NEW
-├── backend/                    # NEW (via scaffolder)
+│   └── build.Dockerfile
+├── backend/
 │   ├── src/
 │   │   ├── app.module.ts
 │   │   ├── main.ts
-│   │   ├── auth/               # NEW (Auth module for login)
-│   │   ├── users/              # NEW (User management for Patient/Admin)
-│   │   └── reports/            # NEW (Report management)
+│   │   ├── auth/               # Auth module for login
+│   │   ├── users/              # User management for Patient/Admin
+│   │   ├── reports/            # Report management
+│   │   ├── health/             # NEW (Health check module)
+│   │   └── audit/              # NEW (Audit logging module)
 │   ├── package.json
 │   └── tsconfig.json
-├── frontend/                   # NEW (via scaffolder)
+├── frontend/
 │   ├── src/
 │   │   └── app/
-│   │       ├── (patient)/      # NEW (Route group for patient app)
+│   │       ├── (patient)/      # Route group for patient app
 │   │       │   └── dashboard/
 │   │       │       └── page.tsx
-│   │       ├── (admin)/        # NEW (Route group for admin panel)
+│   │       ├── (admin)/        # Route group for admin panel
 │   │       │   └── panel/
 │   │       │       └── page.tsx
 │   │       └── layout.tsx
 │   ├── package.json
 │   └── tsconfig.json
-└── package.json                # NEW (Root package.json for workspaces)
+└── package.json                # Root package.json for workspaces
 ```
 
 ## 6. Decision Impact Analysis
 **Implementation sequence**
 A vertical slice can be achieved by implementing in this order:
 1.  **Backend Foundation**: Set up NestJS app, MongoDB connection, and User model with roles.
-2.  **Admin Seeding**: Implement the logic to seed the initial admin user (FR-7).
-3.  **Admin Auth**: Implement Admin login (FR-6) and JWT-based session management (FR-8).
-4.  **Patient/Report CRUD**: Implement backend APIs for Admins to create patients (FR-9) and create/edit reports (FR-10, FR-11).
-5.  **Admin Panel UI**: Build the frontend for Admin login and report management.
-6.  **Patient Auth & Dashboard**: Implement Patient login (FR-1) and the patient-facing dashboard to view reports and charts (FR-3, FR-4, FR-5).
+2.  **Observability & Resilience**: Implement health checks, logging, metrics, and graceful shutdown hooks (ADR-observability, ADR-runtime-resilience).
+3.  **Admin Seeding**: Implement the logic to seed the initial admin user (FR-7).
+4.  **Admin Auth & Security**: Implement Admin login (FR-6), JWT sessions (FR-8), rate limiting, and audit logging (ADR-security-hardening).
+5.  **Patient/Report CRUD**: Implement backend APIs for Admins to create patients (FR-9) and create/edit reports (FR-10, FR-11).
+6.  **Admin Panel UI**: Build the frontend for Admin login and report management.
+7.  **Patient Auth & Dashboard**: Implement Patient login (FR-1) and the patient-facing dashboard to view reports and charts (FR-3, FR-4, FR-5).
 
 **Cross-component dependencies**
 -   The `frontend` application is entirely dependent on the `backend` API.
@@ -176,15 +194,22 @@ A vertical slice can be achieved by implementing in this order:
 -   There are no circular dependencies.
 
 ## 7. Validation
-**Coherence check:** The chosen technologies (NestJS, Next.js, MongoDB) are highly compatible and form a modern, coherent MERN stack. The ADRs are consistent with each other.
+**Coherence check:** The chosen technologies (NestJS, Next.js, MongoDB) are highly compatible and form a modern, coherent MERN stack. The ADRs are consistent with each other and provide a robust foundation for security, scalability, and observability.
 **Requirements coverage:**
--   **FR-1 to FR-13**: All functional requirements are mapped to components in the project structure and addressed by the ADRs. FR-12 and FR-13, which mandate end-to-end functionality, are covered by the overall client-server architecture and the implementation of the defined API contracts (ADR-contracts).
--   **NFR-1 (HTTPS)**: Handled at the deployment/ingress level, outside the application code.
+-   **FR-1 to FR-13**: All functional requirements are mapped to components in the project structure and addressed by the ADRs.
+-   **NFR-1 (HTTPS)**: Handled at the deployment/ingress level, as noted in `deployment-doc.md`.
 -   **NFR-2 (RBAC)**: Covered by ADR-auth.
 -   **NFR-3 (Validation)**: Covered by ADR-contracts.
--   **NFR-4 (Audit Logging)**: To be implemented as a dedicated module in the backend.
--   **NFR-5 (Rate Limiting)**: To be implemented in the backend using `@nestjs/throttler`.
+-   **NFR-4 (Audit Logging)**: Covered by ADR-security-hardening.
+-   **NFR-5 (Rate Limiting)**: Covered by ADR-security-hardening.
 -   **NFR-6 (Scalability)**: Covered by ADR-data.
--   **NFR-7 (Mobile-first)**: A core responsibility of the Next.js frontend implementation.
+-   **NFR-7 (Mobile-first)**: A core responsibility of the Next.js frontend implementation, supported by the choice of Tailwind CSS.
+-   **NFRs 8, 9, 11, 19, 20 (Security)**: Covered by a combination of ADR-auth, ADR-creds, and operational best practices outlined in `deployment-doc.md`.
+-   **NFR-10 (Encryption at Rest)**: An operational concern for the database, noted in `deployment-doc.md`.
+-   **NFR-12 (Performance)**: The stateless architecture (ADR-runtime, ADR-auth) and efficient database usage (ADR-runtime-resilience) support this goal.
+-   **NFR-13, 14, 15, 18, 23 (Observability)**: Fully covered by ADR-observability.
+-   **NFR-16 (Dependency Scanning)**: A CI/CD process requirement, noted in `deployment-doc.md`.
+-   **NFR-17 (Stateless Tier)**: Covered by ADR-auth (JWT).
+-   **NFR-21, 22 (Resilience)**: Covered by ADR-runtime-resilience.
 **Implementation readiness:** This document provides a clear foundation. The Dev stage can proceed by bootstrapping the projects with the specified scaffolders and then implementing features in the sequence provided.
 **Gap analysis:** The plan covers all specified MVP requirements. There are no critical gaps.

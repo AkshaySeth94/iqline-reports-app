@@ -42,7 +42,7 @@ Before the development stage runs, the wrapper executes these commands in order 
         "--src-dir",
         "--use-npm",
         "--import-alias", "@/*",
-        "--no-tailwind",
+        "--tailwind",
         "--no-turbopack",
         "--skip-install"
       ],
@@ -57,6 +57,12 @@ Before the development stage runs, the wrapper executes these commands in order 
   ]
 }
 ```
+
+## Styling system
+- **Tailwind CSS** (configured by create-next-app via `--tailwind`).
+- All components must use utility classes for styling. Inline `style={{...}}` props are forbidden for static values.
+- This choice directly supports the mobile-first responsive UI requirement (NFR-7).
+- Optional companion libraries for consideration by the development team: `clsx` for conditional class composition and `lucide-react` for icons.
 
 ## Build & Package Step
 
@@ -104,12 +110,13 @@ The recommended deployment method is a single Docker container.
 
 The application requires two sets of environment variables, one for each component. The development stage will produce `.env.example` files at the specified paths.
 
-| Variable                 | File path                 | Scope   | Secret? | Purpose                                           |
-|--------------------------|---------------------------|---------|---------|---------------------------------------------------|
-| `MONGODB_URI`            | `backend/.env.example`    | server  | YES     | Full connection string for the MongoDB database.  |
-| `JWT_SECRET`             | `backend/.env.example`    | server  | YES     | A long, random string for signing JWTs.           |
-| `PORT`                   | `backend/.env.example`    | server  | no      | Port for the backend API to listen on (e.g., 3001). |
-| `NEXT_PUBLIC_API_BASE_URL` | `frontend/.env.example`   | browser | no      | The public URL of the backend API (e.g., `http://localhost:3001`). |
+| Variable                 | File path                 | Scope   | Secret? | Purpose                                                                        |
+|--------------------------|---------------------------|---------|---------|--------------------------------------------------------------------------------|
+| `MONGODB_URI`            | `backend/.env.example`    | server  | YES     | Full connection string for the MongoDB database.                               |
+| `JWT_SECRET`             | `backend/.env.example`    | server  | YES     | A long, random string for signing JWTs.                                        |
+| `PORT`                   | `backend/.env.example`    | server  | no      | Port for the backend API to listen on (e.g., 3001).                              |
+| `LOG_LEVEL`              | `backend/.env.example`    | server  | no      | Logging verbosity (e.g., 'info', 'debug', 'warn', 'error'). Defaults to 'info'. |
+| `NEXT_PUBLIC_API_BASE_URL` | `frontend/.env.example`   | browser | no      | The public URL of the backend API (e.g., `http://localhost:3001`).               |
 
 ## Dependencies
 
@@ -122,6 +129,7 @@ The application requires two sets of environment variables, one for each compone
 | @nestjs/jwt                | ^10.2.0    | JWT authentication                       |
 | @nestjs/mongoose           | ^10.0.6    | Mongoose integration for MongoDB         |
 | @nestjs/passport           | ^10.0.3    | Authentication strategies                |
+| @nestjs/terminus           | ^10.2.3    | Health check endpoint (NFR-15)           |
 | @nestjs/throttler          | ^5.1.2     | Rate limiting (NFR-5)                    |
 | bcryptjs                   | ^2.4.3     | Password hashing for Admin users         |
 | class-transformer          | ^0.5.1     | DTO transformation                       |
@@ -129,6 +137,9 @@ The application requires two sets of environment variables, one for each compone
 | mongoose                   | ^8.4.0     | MongoDB ODM                              |
 | passport                   | ^0.7.0     | Authentication middleware                |
 | passport-jwt               | ^4.0.1     | JWT strategy for Passport                |
+| pino                       | ^9.0.0     | Fast, structured JSON logger (NFR-13)    |
+| pino-http                  | ^9.0.0     | Structured logging middleware (NFR-13)   |
+| prom-client                | ^15.1.2    | Prometheus metrics endpoint (NFR-14)     |
 | reflect-metadata           | ^0.2.0     | Required for NestJS                      |
 | rxjs                       | ^7.8.1     | Required for NestJS                      |
 
@@ -147,6 +158,7 @@ The application requires two sets of environment variables, one for each compone
 | eslint                     | ^8.42.0    | Linter                                   |
 | eslint-plugin-prettier     | ^5.0.0     | Prettier integration for ESLint          |
 | jest                       | ^29.5.0    | Test runner                              |
+| pino-pretty                | ^11.0.0    | For readable local logs                  |
 | prettier                   | ^3.0.0     | Code formatter                           |
 | source-map-support         | ^0.5.21    | Source map support for stack traces      |
 | supertest                  | ^6.3.3     | HTTP assertion library for testing       |
@@ -163,6 +175,11 @@ The application requires two sets of environment variables, one for each compone
 | react                      | ^18        | UI library                               |
 | react-dom                  | ^18        | DOM renderer for React                   |
 | recharts                   | ^2.12.7    | Charting library for glucose trends (FR-5) |
+| clsx                       | ^2.1.1     | Utility for constructing className strings |
+| lucide-react               | ^0.395.0   | Icon library                             |
+| tailwindcss                | ^3.4.0     | Styling system                           |
+| autoprefixer               | ^10.4.0    | Tailwind dep                             |
+| postcss                    | ^8.4.0     | Tailwind dep                             |
 
 ### Frontend devDependencies
 | Package                    | Version    | Why                                      |
@@ -181,11 +198,20 @@ The application requires two sets of environment variables, one for each compone
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests
--   The backend should expose a `GET /health` endpoint that returns a `200 OK` status if the API is running and can connect to the database.
+-   The backend should expose a `GET /healthz` endpoint that returns a `200 OK` status if the API is running and can connect to the database.
 -   After deployment, a smoke test should involve:
-    1.  Pinging the `/health` endpoint.
+    1.  Pinging the `/healthz` endpoint.
     2.  Attempting to load the frontend's main page.
     3.  Attempting an Admin login with invalid credentials to verify the API is responding.
+
+## Operational Security and Best Practices
+
+In addition to application-level security, operators must ensure the following practices are followed in the deployment environment to meet all non-functional requirements:
+
+-   **Database Encryption at Rest (NFR-10)**: The underlying MongoDB infrastructure must be configured to encrypt all data stored on disk. This is a standard feature in most managed database services.
+-   **Principle of Least Privilege (NFR-20)**: The MongoDB user credentials provided to the application via `MONGODB_URI` must be scoped with the minimum required permissions. The user should only have `readWrite` access to the application's specific database, not administrative roles.
+-   **Dependency Security Scanning (NFR-16)**: The CI/CD pipeline should include a step to automatically scan all third-party dependencies for known vulnerabilities (e.g., using `npm audit` or a tool like Snyk). The pipeline should fail the build if high or critical severity vulnerabilities are detected.
+-   **HTTPS/TLS Termination (NFR-1)**: The production environment must have an ingress controller, load balancer, or reverse proxy configured to terminate TLS and serve all traffic over HTTPS.
 
 ## Rollback Procedure
 If a deployment fails health checks or introduces a critical regression, roll back by deploying the previously known-good Docker image tag.
