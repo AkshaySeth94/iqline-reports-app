@@ -32,11 +32,12 @@ LabDash will bridge this gap by providing patients with instant, mobile-first ac
 *   **Patient**: An end-user of the mobile web app who views their own lab reports. Identified by a unique phone number.
 *   **Patient Dashboard**: The main screen for a logged-in Patient, displaying their list of Reports and a chart of historical glucose values.
 *   **Report**: A digital record of a lab test result. For v1, this is exclusively a Glucose Marker Report.
+*   **SMS Gateway**: A third-party service used to send and receive SMS messages, used here to deliver OTPs to Patients.
 
 ## 4. Features
 
 ### 4.1 Patient Authentication
-**Description:** Patients access the application using their registered phone number. They will be prompted to enter an OTP to log in. For v1, there is no SMS gateway; a static OTP will be used for all logins. The system will create a secure session for the Patient upon successful authentication. [ASSUMPTION: A static OTP is a sufficient security measure for the initial MVP launch, to be replaced by a dynamic, SMS-based OTP in a future version.]
+**Description:** Patients access the application using their registered phone number. They will be prompted to enter an OTP to log in. For v1, there is no SMS gateway; a static OTP will be used for all logins. The system will create a secure session for the Patient upon successful authentication.
 
 **Functional Requirements:**
 
@@ -163,19 +164,68 @@ The Admin Panel forms for login, patient creation, and report management shall b
 - When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
 - The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
 
+### 4.6 Production Hardening
+**Description:** This feature introduces a set of enhancements to improve the security, reliability, and operational readiness of the LabDash portal, moving it from an MVP to a production-grade service. This includes replacing placeholder security mechanisms with robust solutions and adding essential operational capabilities. Notably, FR-14 (Dynamic OTP) supersedes the static OTP mechanism described in FR-1.
+
+**Functional Requirements:**
+
+#### FR-14: Dynamic OTP via SMS for Patient Login
+The system shall replace the static OTP with a dynamically generated OTP sent to the Patient's registered phone number via an SMS gateway for login.
+
+**Consequences (testable):**
+- When a Patient enters their registered phone number on the login page, the system generates a unique 6-digit numeric OTP.
+- The system sends this OTP to the Patient's phone number via an integrated SMS gateway.
+- The OTP is valid for 5 minutes.
+- The Patient can successfully log in by entering the received OTP within the validity period.
+- Entering an expired or incorrect OTP results in an error message.
+- A Patient can request a new OTP no more than once every 60 seconds.
+
+#### FR-15: Admin Password Management
+Admins shall have the ability to manage their own passwords securely, including a password reset mechanism.
+
+**Consequences (testable):**
+- A logged-in Admin can access a "Change Password" feature.
+- To change the password, the Admin must provide their current password and a new password.
+- The new password must meet complexity requirements: minimum 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character.
+- The Admin login page provides a "Forgot Password" link.
+- The "Forgot Password" flow sends a time-sensitive OTP to the Admin's registered phone number to verify their identity.
+- Upon successful OTP verification, the Admin can set a new password.
+
+#### FR-16: Secure Configuration Management
+All sensitive configuration values shall be managed outside of the application codebase.
+
+**Consequences (testable):**
+- The application loads configuration (e.g., database connection string, session secret, SMS gateway API keys) from environment variables.
+- No secrets (passwords, API keys, etc.) are present in the committed source code repository.
+
+#### FR-17: Enhanced Web Security Headers
+The web application shall implement standard security-related HTTP headers to protect against common web attacks.
+
+**Consequences (testable):**
+- The server response for all pages includes the `Strict-Transport-Security` (HSTS) header with a `max-age` of at least one year.
+- The server response includes the `X-Content-Type-Options: nosniff` header.
+- The server response includes the `X-Frame-Options: DENY` header.
+- The server response includes a restrictive `Content-Security-Policy` (CSP) header to mitigate XSS attacks.
+
+#### FR-18: Automated Database Backups
+The system's database shall be backed up automatically on a regular schedule to prevent data loss.
+
+**Consequences (testable):**
+- Automated daily backups of the production database are configured.
+- Backups are stored in a secure, geographically separate location from the production database server.
+- A documented procedure for restoring the database from a backup exists and is tested quarterly.
+
 ## 5. Non-Goals (Explicit)
-*   Integration with any SMS gateway for OTP delivery.
 *   Patient self-registration or profile management (e.g., changing their phone number).
 *   Uploading of any file types (e.g., PDF, JPG) for reports.
 *   Support for any report type other than the Glucose Marker Report.
 *   Admins managing other Admins (no super-admin role).
-*   Password reset or "forgot password" functionality for Admins.
 *   Any form of communication (e.g., messaging, notifications) between Patients and Admins.
 *   Billing, invoicing, or payment features.
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-13) listed above.
+*   All features and functional requirements (FR-1 to FR-18) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
 *   Basic security, logging, and architectural foundations for future expansion.
@@ -190,6 +240,8 @@ The Admin Panel forms for login, patient creation, and report management shall b
 ### Primary
 *   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12)
 *   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10, FR-13)
+*   **System Security Posture**: Zero critical or high-severity vulnerabilities reported by a quarterly automated security scan of the production environment. (Validates FR-14, FR-15, FR-17, NFR-1, NFR-3)
+*   **Data Resiliency**: Successful execution of quarterly database restore drills from automated backups. (Validates FR-18)
 
 ### Secondary
 *   **Patient Adoption**: 80% of newly created Patients log in at least once within 72 hours of their first report being created.
@@ -202,9 +254,8 @@ The Admin Panel forms for login, patient creation, and report management shall b
 None at this time. Decisions required for v1 have been made and are documented in this PRD.
 
 ## 9. Assumptions Index
-1.  `[ASSUMPTION: A static OTP is a sufficient security measure for the initial MVP launch, to be replaced by a dynamic, SMS-based OTP in a future version.]` (from Section 4.1)
-2.  `[ASSUMPTION: The initial Admin user credentials are for bootstrapping purposes only and the operator will change them immediately upon first login.]` (from Section 4.3)
-3.  `[ASSUMPTION: Patients cannot self-register; they must be created by an Admin.]` (from Section 4.4)
+1.  `[ASSUMPTION: The initial Admin user credentials are for bootstrapping purposes only and the operator will change them immediately upon first login.]` (from Section 4.3)
+2.  `[ASSUMPTION: Patients cannot self-register; they must be created by an Admin.]` (from Section 4.4)
 
 ## 10. Cross-Cutting Non-Functional Requirements
 ### 10.1 Security
