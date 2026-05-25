@@ -28,8 +28,12 @@
       "commit": "6c3ef8ee8ca3"
     },
     "qa": {
-      "status": "running",
-      "ts": "2026-05-25T15:26:02.153Z"
+      "status": "awaiting_approval",
+      "ts": "2026-05-25T15:26:02.153Z",
+      "awaitingPreSha": "b077f7783338289361bf75be07a2f7ab029c449d",
+      "awaitingPostSha": "7529fc056eb4213d0a8db663ade3b36120ec2089",
+      "awaitingSpecRef": "spec-118cc64c69f3",
+      "awaitingAt": "2026-05-25T15:30:39Z"
     }
   },
   "bugLoop": {
