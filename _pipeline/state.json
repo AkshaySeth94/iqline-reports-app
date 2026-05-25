@@ -28,7 +28,8 @@
       "commit": "5deeaee1bda6"
     },
     "qa": {
-      "status": "pending"
+      "status": "approved",
+      "ts": "2026-05-25T09:00:00.000Z"
     }
   },
   "bugLoop": {
