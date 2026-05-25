@@ -42,7 +42,7 @@ Before the development stage runs, the wrapper executes these commands in order 
         "--src-dir",
         "--use-npm",
         "--import-alias", "@/*",
-        "--no-tailwind",
+        "--tailwind",
         "--no-turbopack",
         "--skip-install"
       ],
@@ -50,13 +50,19 @@ Before the development stage runs, the wrapper executes these commands in order 
       "expected_files": [
         "frontend/package.json",
         "frontend/tsconfig.json",
-        "frontend/src/app/page.tsx"
+        "frontend/src/app/page.tsx",
+        "frontend/tailwind.config.ts"
       ],
       "timeoutSeconds": 180
     }
   ]
 }
 ```
+
+## Styling system
+- **Tailwind CSS** (configured by create-next-app via `--tailwind`).
+- All components use utility classes only — no inline `style={{...}}` for static values.
+- The dark theme (FR-14) will be implemented using Tailwind's `dark` variant. The theme configuration will be managed in `tailwind.config.ts`.
 
 ## Build & Package Step
 
@@ -174,10 +180,13 @@ The application requires two sets of environment variables, one for each compone
 | @types/node                | ^20        | Type definitions for Node.js             |
 | @types/react               | ^18        | Type definitions for React               |
 | @types/react-dom           | ^18        | Type definitions for React DOM           |
+| autoprefixer               | ^10.4.0    | Tailwind CSS dependency                  |
 | eslint                     | ^8         | Linter                                   |
 | eslint-config-next         | 14.2.3     | ESLint configuration for Next.js         |
 | jest                       | ^29.7.0    | Test runner                              |
 | jest-environment-jsdom     | ^29.7.0    | DOM environment for component tests      |
+| postcss                    | ^8.4.0     | Tailwind CSS dependency                  |
+| tailwindcss                | ^3.4.0     | Styling system (FR-14)                   |
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests
