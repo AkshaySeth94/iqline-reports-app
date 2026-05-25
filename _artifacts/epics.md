@@ -15,6 +15,7 @@
 *   **FR-11:** Admin Edits a Report
 *   **FR-12:** Functional Patient Login and Dashboard
 *   **FR-13:** Functional Admin Panel
+*   **FR-14:** Dark Theme Implementation
 
 **Non-Functional Requirements (NFRs):**
 *   **NFR-1:** Secure Communication
@@ -41,6 +42,7 @@
 | FR-11       | Epic 2 / Story 2.5 |
 | FR-12       | Epic 3 / Story 3.6 |
 | FR-13       | Epic 2 / Story 2.6 |
+| FR-14       | Epic 4 / Story 4.6 |
 | NFR-2       | Epic 4 / Story 4.2 |
 | NFR-3       | Epic 4 / Story 4.1 |
 | NFR-4       | Epic 4 / Story 4.4 |
@@ -399,3 +401,24 @@ So that I can easily check my results on the go.
 **Given** I am viewing the same dashboard on a desktop with a 1280px wide viewport
 **When** I view the list of reports and the chart
 **Then** the layout adapts to use the available space effectively without looking stretched or broken.
+
+### Story 4.6: Implement Dark Theme Across the Application
+`traces: { prd: FR-14, arch: ADR-styling-tailwind }`
+
+As a user (both Patient and Admin),
+I want the application to have a consistent dark theme,
+So that it is visually comfortable, especially in low-light conditions.
+
+**Acceptance Criteria:**
+
+**Given** I open any page in the Patient application (e.g., login, dashboard)
+**When** the page renders
+**Then** the background is a dark color and the text is a light color with sufficient contrast.
+**And** interactive elements like buttons and links use accent colors that are clearly visible on the dark background.
+**Given** I open any page in the Admin Panel (e.g., login, dashboard)
+**When** the page renders
+**Then** the background is a dark color and the text is a light color with sufficient contrast.
+**And** form fields and buttons are styled to be easily readable and usable on the dark theme.
+**Given** I am a Patient viewing my dashboard
+**When** the glucose trend chart renders
+**Then** the chart's axes, labels, and bars use a color palette that is clear and legible against the dark background.
