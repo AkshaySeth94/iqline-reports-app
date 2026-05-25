@@ -5,7 +5,7 @@ This document provides guidance for operators on deploying and managing the LabD
 ## Prerequisites
 -   Node.js 22.x LTS
 -   npm 10.x or later
--   Access to a MongoDB instance (v6.0 or later)
+-   Access to a MongoDB instance (v6.0 or later) that supports encryption at rest.
 -   A process manager like `pm2` for running multiple Node.js processes in production.
 
 ## Scaffolders
@@ -42,7 +42,7 @@ Before the development stage runs, the wrapper executes these commands in order 
         "--src-dir",
         "--use-npm",
         "--import-alias", "@/*",
-        "--no-tailwind",
+        "--tailwind",
         "--no-turbopack",
         "--skip-install"
       ],
@@ -57,6 +57,11 @@ Before the development stage runs, the wrapper executes these commands in order 
   ]
 }
 ```
+
+## Styling system
+-   **Tailwind CSS** (configured by create-next-app via `--tailwind`).
+-   All components must use utility classes for styling. Inline `style={{...}}` props are forbidden for static values.
+-   Design tokens (e.g., custom colors, spacing) should be defined in `tailwind.config.ts` when needed.
 
 ## Build & Package Step
 
@@ -77,7 +82,7 @@ This will create production-ready builds in `backend/dist/` and `frontend/.next/
 
 The recommended deployment method is a single Docker container.
 
-1.  Build the Docker image using the `_pipeline/build.Dockerfile` as a base, but with a production-oriented `CMD`.
+1.  Build the Docker image using the `_pipeline/build.Dockerfile`.
 2.  The production container should run both the backend and frontend servers. A process manager like `pm2` is recommended. A `ecosystem.config.js` file would look like this:
 
     ```javascript
@@ -122,6 +127,7 @@ The application requires two sets of environment variables, one for each compone
 | @nestjs/jwt                | ^10.2.0    | JWT authentication                       |
 | @nestjs/mongoose           | ^10.0.6    | Mongoose integration for MongoDB         |
 | @nestjs/passport           | ^10.0.3    | Authentication strategies                |
+| @nestjs/terminus           | ^10.2.0    | Health checks (NFR-12)                   |
 | @nestjs/throttler          | ^5.1.2     | Rate limiting (NFR-5)                    |
 | bcryptjs                   | ^2.4.3     | Password hashing for Admin users         |
 | class-transformer          | ^0.5.1     | DTO transformation                       |
@@ -129,6 +135,7 @@ The application requires two sets of environment variables, one for each compone
 | mongoose                   | ^8.4.0     | MongoDB ODM                              |
 | passport                   | ^0.7.0     | Authentication middleware                |
 | passport-jwt               | ^4.0.1     | JWT strategy for Passport                |
+| prom-client                | ^15.1.0    | Prometheus metrics client (NFR-11)       |
 | reflect-metadata           | ^0.2.0     | Required for NestJS                      |
 | rxjs                       | ^7.8.1     | Required for NestJS                      |
 
@@ -174,18 +181,22 @@ The application requires two sets of environment variables, one for each compone
 | @types/node                | ^20        | Type definitions for Node.js             |
 | @types/react               | ^18        | Type definitions for React               |
 | @types/react-dom           | ^18        | Type definitions for React DOM           |
+| autoprefixer               | ^10.4.0    | Tailwind CSS dependency                  |
 | eslint                     | ^8         | Linter                                   |
 | eslint-config-next         | 14.2.3     | ESLint configuration for Next.js         |
 | jest                       | ^29.7.0    | Test runner                              |
 | jest-environment-jsdom     | ^29.7.0    | DOM environment for component tests      |
+| postcss                    | ^8.4.0     | Tailwind CSS dependency                  |
+| tailwindcss                | ^3.4.0     | Utility-first CSS framework (NFR-7)      |
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests
--   The backend should expose a `GET /health` endpoint that returns a `200 OK` status if the API is running and can connect to the database.
+-   The backend must expose a `GET /healthz` endpoint that returns a `200 OK` status if the API is running and can connect to the database.
 -   After deployment, a smoke test should involve:
-    1.  Pinging the `/health` endpoint.
-    2.  Attempting to load the frontend's main page.
-    3.  Attempting an Admin login with invalid credentials to verify the API is responding.
+    1.  Pinging the `/healthz` endpoint.
+    2.  Pinging the `/metrics` endpoint.
+    3.  Loading the frontend's main page.
+    4.  Attempting an Admin login with invalid credentials to verify the API is responding.
 
 ## Rollback Procedure
 If a deployment fails health checks or introduces a critical regression, roll back by deploying the previously known-good Docker image tag.
