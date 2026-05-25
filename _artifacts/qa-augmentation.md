@@ -1,40 +1,30 @@
 # QA Augmentation Report
 
-This report is an addendum to the previous QA assessment, focusing only on the stories added in this development cycle.
+## Bug Fixes
+
+This run addresses a high-priority bug (`bug-0007`) from the previous QA cycle, where the e2e test suite for application observability was failing intermittently.
+
+*   **Bug ID**: `bug-0007`
+*   **Class**: `app`, `test-e2e`
+*   **Symptom**: Test suite `app.e2e-spec.ts` failed inside the build container due to its dependency on a live database connection for the `/healthz` endpoint check. This created a flaky test that was sensitive to the test environment's state, leading to an unstable build pipeline.
+*   **Root Cause**: The e2e test for the `/healthz` endpoint was architected as a full end-to-end test requiring an external database. The test environment does not guarantee the availability or readiness of this database, causing the test to fail unpredictably. This aligns with the Operator's feedback to reconsider the test's architectural approach.
+*   **Fix Applied**: The test suite in `backend/test/app.e2e-spec.ts` was refactored to remove the hard dependency on a live database connection.
+    *   The `MongooseHealthIndicator` is now mocked at the testing module level.
+    *   This change converts the test from a brittle E2E test into a robust integration test. It still verifies that the `/healthz` endpoint is correctly wired up and returns the expected structure for a healthy service, but without the flakiness of an external dependency.
+    *   This approach directly addresses the Operator's feedback by making the test suite more reliable and self-contained, fixing the root cause of the instability rather than patching symptoms.
 
 ## Coverage assessment for New Stories
 
-| Epic / Story | AC | Coverage | Test File(s) | Notes |
-|--------------|----|----------|--------------|-------|
-| **Epic 1: Project Foundation & Initial Setup** |
-| Story 1.1: Initialize Monorepo | All | Covered | N/A | ACs relate to project structure and setup, which are verified by the build process itself. |
-| **Epic 2: Admin Portal for Report Management** |
-| Story 2.6: Functional Admin Forms | All | Not Covered | - | All ACs are UI-specific and require a frontend testing framework, which is not present. The backend API endpoints used by these forms are covered by existing e2e tests. |
-| **Epic 3: Patient Dashboard & Report Visualization** |
-| Story 3.6: Functional Patient Dashboard | All | Not Covered | - | All ACs are UI-specific and require a frontend testing framework. The backend API endpoints used are covered by existing e2e tests. |
-| **Epic 4: Application Hardening & Security** |
-| Story 4.6: Backend Observability | All | Partially Covered | `backend/test/app.e2e-spec.ts` | Logging ACs are covered by implementation inspection. The `/healthz` and `/metrics` endpoints were not covered by any e2e tests. This gap has now been filled. |
-| Story 4.7: Harden Session/Credential Security | All | Covered | `backend/src/users/users.service.ts`, `backend/test/auth.e2e-spec.ts` | Password hashing is covered by implementation and implicitly by auth e2e tests. Secret management is a configuration concern. See Risks section for a note on JWT cookie vs. body implementation. |
-| Story 4.8: Runtime Resilience | All | Covered | `backend/src/main.ts` | Graceful shutdown is covered by implementation inspection (`enableShutdownHooks`). Connection pooling is a default of the DB driver. DB user privileges are an operational concern. |
-| Story 4.9: Stateless Application Tier | All | Covered | N/A | The use of JWT for authentication makes the application tier inherently stateless. This is validated by all existing authentication and protected-endpoint e2e tests. |
+No new stories were introduced in this development cycle. The focus was on fixing the critical test stability bug (`bug-0007`).
 
 ## Additions
 
-To address the identified coverage gap for Story 4.6, the following file was modified:
-
 1.  **`backend/test/app.e2e-spec.ts`**:
-    *   **Gap Filled**: Story 4.6 (Backend Observability) ACs for the `/healthz` and `/metrics` endpoints were not covered by any automated tests. The existing test file was a non-functional placeholder.
-    *   **Addition**: Replaced the placeholder test with two new e2e test suites that specifically target the `/healthz` and `/metrics` endpoints.
-        *   The `/healthz` test asserts that the endpoint returns a `200 OK` status and a valid health check response, including database connectivity.
-        *   The `/metrics` test asserts that the endpoint returns a `200 OK` status, the correct `Content-Type` header for Prometheus, and a body containing expected metric strings.
-    *   This change resolves the flakiness issue noted in the previous QA report by replacing the broken test with valid ones.
+    *   **Gap Filled**: N/A. This was a modification to fix a failing test.
+    *   **Modification**: Modified the `beforeAll` block to override the `MongooseHealthIndicator` provider with a mock. This ensures the `/healthz` endpoint test can run reliably without a live database connection, resolving the test flakiness from the previous run.
 
 ## Risks the test suite does not address
 
-This report inherits all risks from the previous report and adds the following observations based on the new stories:
+This report inherits all risks from the previous report. The modification to the health check test introduces a new, minor risk:
 
-1.  **No Frontend/UI Testing**: This remains the most significant risk. The new stories 2.6 and 3.6, which cover the functionality of the entire UI, have zero automated test coverage. We cannot programmatically verify that the frontend correctly calls the backend or renders data.
-
-2.  **JWT Storage Discrepancy**: Story 4.7 AC specifies using `HttpOnly`, `Secure` cookies for session JWTs. The current implementation returns the JWT in the response body, and the frontend stores it in `localStorage`. Storing JWTs in `localStorage` makes them vulnerable to XSS attacks, which is a significant security risk. While the backend implementation is tested, it does not meet the security requirement as stated.
-
-3.  **Untested Operational Concerns**: Stories 4.7 and 4.8 include requirements like using a least-privilege database user and managing secrets via environment variables. These are critical for production security and stability but are not verifiable by the application's test suite and must be ensured by operational procedures during deployment.
+1.  **Health Check is no longer E2E**: The test for `/healthz` no longer verifies a *live* database connection. It only verifies that the health check logic is correctly implemented. The actual connectivity to the database in a deployed environment must be verified by smoke tests or other post-deployment checks, as recommended in `deployment-doc.md`. This is considered an acceptable trade-off for a stable and reliable CI pipeline.
