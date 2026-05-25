@@ -163,6 +163,20 @@ The Admin Panel forms for login, patient creation, and report management shall b
 - When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
 - The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
 
+### 4.6 Application Theme
+**Description:** The application will use a dark theme across all user interfaces, including the Patient Dashboard and the Admin Panel. This provides a modern aesthetic and can reduce eye strain in low-light conditions. The theme should be consistent across all views.
+
+**Functional Requirements:**
+
+#### FR-14: Dark Theme UI
+The application user interface for both the Patient app and the Admin Panel shall be presented in a dark theme.
+
+**Consequences (testable):**
+- All application screens for both Patient and Admin roles use dark background colors (e.g., near-black or dark grey).
+- Text, icons, and primary interactive elements (e.g., buttons, links) use light colors to ensure high contrast and readability against the dark background.
+- Data visualizations, specifically the glucose trend chart, are rendered with a theme that is legible and clear on a dark background.
+- Form inputs and controls are clearly visible and styled consistently with the dark theme.
+
 ## 5. Non-Goals (Explicit)
 *   Integration with any SMS gateway for OTP delivery.
 *   Patient self-registration or profile management (e.g., changing their phone number).
@@ -175,7 +189,7 @@ The Admin Panel forms for login, patient creation, and report management shall b
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-13) listed above.
+*   All features and functional requirements (FR-1 to FR-14) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
 *   Basic security, logging, and architectural foundations for future expansion.
