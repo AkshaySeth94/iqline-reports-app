@@ -1,12 +1,15 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, MinLength, IsDateString } from 'class-validator';
 
 export class CreatePatientDto {
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
   name: string;
 
   @IsString()
-  @IsNotEmpty()
-  @Length(10, 10)
+  @MinLength(10)
   phone: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateOfBirth?: string;
 }

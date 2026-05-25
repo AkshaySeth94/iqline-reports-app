@@ -1,40 +1,44 @@
 import {
-  IsNotEmpty,
-  IsString,
-  IsDate,
-  IsOptional,
+  IsDateString,
   IsEnum,
-  ValidateNested,
   IsMongoId,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ReportStatus } from '../../common/enums/report-status.enum';
-
-class GlucoseMarkerDataDto {
-  @IsNotEmpty()
-  glucoseValue: number;
-}
+import { MealContext } from '../../common/enums/meal-context.enum';
+import { GlucoseUnit } from '../../common/enums/glucose-unit.enum';
 
 export class CreateReportDto {
   @IsMongoId()
-  @IsNotEmpty()
   patient: string;
 
-  @Type(() => Date)
-  @IsDate()
-  reportDate: Date;
+  @IsDateString()
+  reportDate: string;
 
-  @IsEnum(ReportStatus)
-  status: ReportStatus;
+  @IsNumber()
+  @Min(0.1)
+  @Max(2000)
+  glucoseValue: number;
 
-  @IsString()
   @IsOptional()
+  @IsEnum(GlucoseUnit)
+  unit?: GlucoseUnit;
+
+  @IsOptional()
+  @IsEnum(MealContext)
+  mealContext?: MealContext;
+
+  @IsOptional()
+  @IsEnum(ReportStatus)
+  status?: ReportStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   notes?: string;
-
-  @IsEnum(['GlucoseMarker'])
-  reportType: 'GlucoseMarker';
-
-  @ValidateNested()
-  @Type(() => GlucoseMarkerDataDto)
-  data: GlucoseMarkerDataDto;
 }

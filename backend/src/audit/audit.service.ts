@@ -1,24 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { AuditLog } from './schemas/audit-log.schema';
+import { AuditWriteQueueService, AuditEntryInput } from './audit-write-queue.service';
+import { TenantContext } from '../tenant-context/tenant-context.service';
 
 @Injectable()
 export class AuditService {
   constructor(
-    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLog>,
+    private readonly queue: AuditWriteQueueService,
+    private readonly tenantContext: TenantContext,
   ) {}
 
-  async log(
+  /**
+   * Imperative audit write. Prefer the @Audit/@AuditRead decorators on
+   * controllers — this is for non-controller flows (bootstrap, migrations
+   * exposed via controllers, deep service events).
+   */
+  log(
     actorId: string,
     action: string,
-    details: Record<string, any>,
-  ): Promise<AuditLog> {
-    const newLog = new this.auditLogModel({
+    details?: Record<string, any>,
+    overrides: Partial<AuditEntryInput> = {},
+  ): void {
+    this.queue.enqueue({
       actorId,
+      actorRole: this.tenantContext.role || undefined,
+      labId: this.tenantContext.labId,
       action,
       details,
+      ...overrides,
     });
-    return newLog.save();
   }
 }

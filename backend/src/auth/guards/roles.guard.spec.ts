@@ -1,51 +1,40 @@
-import { RolesGuard } from './roles.guard';
 import { Reflector } from '@nestjs/core';
-import { ExecutionContext } from '@nestjs/common';
+import { RolesGuard } from './roles.guard';
 import { UserRole } from '../../common/enums/user-role.enum';
 
+function makeGuard(requiredRoles: UserRole[] | undefined) {
+  const reflector = {
+    getAllAndOverride: jest.fn().mockReturnValue(requiredRoles),
+  } as any as Reflector;
+  return new RolesGuard(reflector);
+}
+
+function ctx(user: any) {
+  return {
+    switchToHttp: () => ({ getRequest: () => ({ user }) }),
+    getHandler: () => ({}),
+    getClass: () => ({}),
+  } as any;
+}
+
 describe('RolesGuard', () => {
-  let guard: RolesGuard;
-  let reflector: Reflector;
-
-  beforeEach(() => {
-    reflector = new Reflector();
-    guard = new RolesGuard(reflector);
+  it('allows when no required roles are specified', () => {
+    const g = makeGuard(undefined);
+    expect(g.canActivate(ctx({ role: UserRole.Patient }))).toBe(true);
   });
 
-  it('should allow access if no roles are required', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
-    const context = {
-      getHandler: () => {},
-      getClass: () => {},
-    } as unknown as ExecutionContext;
-    expect(guard.canActivate(context)).toBe(true);
+  it('allows when user role matches one of the required roles', () => {
+    const g = makeGuard([UserRole.SuperAdmin, UserRole.LabAdmin]);
+    expect(g.canActivate(ctx({ role: UserRole.LabAdmin }))).toBe(true);
   });
 
-  it('should allow access if user has the required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.Admin]);
-    const context = {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: UserRole.Admin },
-        }),
-      }),
-      getHandler: () => {},
-      getClass: () => {},
-    } as unknown as ExecutionContext;
-    expect(guard.canActivate(context)).toBe(true);
+  it('denies when user role is not in the required list', () => {
+    const g = makeGuard([UserRole.SuperAdmin]);
+    expect(g.canActivate(ctx({ role: UserRole.Patient }))).toBe(false);
   });
 
-  it('should deny access if user does not have the required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.Admin]);
-    const context = {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: UserRole.Patient },
-        }),
-      }),
-      getHandler: () => {},
-      getClass: () => {},
-    } as unknown as ExecutionContext;
-    expect(guard.canActivate(context)).toBe(false);
+  it('denies when user is missing', () => {
+    const g = makeGuard([UserRole.SuperAdmin]);
+    expect(g.canActivate(ctx(undefined))).toBe(false);
   });
 });

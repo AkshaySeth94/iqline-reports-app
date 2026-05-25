@@ -1,10 +1,14 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  Patch,
+  Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -14,41 +18,55 @@ import { UpdateReportDto } from './dto/update-report.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Report } from './schemas/report.schema';
+import { Audit, AuditRead } from '../audit/decorators/audit.decorator';
 
 @Controller('reports')
 @UseGuards(RolesGuard)
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  constructor(private readonly service: ReportsService) {}
 
   @Post()
-  @Roles(UserRole.Admin)
-  create(
-    @Body() createReportDto: CreateReportDto,
-    @Request() req: any,
-  ): Promise<Report> {
-    return this.reportsService.create(createReportDto, req.user.userId);
+  @Roles(UserRole.LabAdmin)
+  @Audit('report.created')
+  create(@Body() dto: CreateReportDto) {
+    return this.service.create(dto);
   }
 
   @Get()
+  @Roles(UserRole.LabAdmin)
+  @AuditRead('reports.list.read')
+  listForPatient(@Query('patientId') patientId: string) {
+    return this.service.listForPatientThisLab(patientId);
+  }
+
+  @Get('me')
   @Roles(UserRole.Patient)
-  findAllForPatient(@Request() req: any): Promise<Report[]> {
-    return this.reportsService.findAllForPatient(req.user.userId);
+  @AuditRead('patient.reports.read')
+  listForMe(@Request() req: any) {
+    return this.service.listForPatientAggregated(req.user.userId);
   }
 
   @Get(':id')
-  @Roles(UserRole.Admin, UserRole.Patient)
-  findOne(@Param('id') id: string, @Request() req: any): Promise<Report> {
-    return this.reportsService.findOne(id, req.user.userId, req.user.role);
+  @Roles(UserRole.LabAdmin, UserRole.Patient)
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(UserRole.Admin)
-  update(
+  @Roles(UserRole.LabAdmin)
+  @Audit('report.updated')
+  update(@Param('id') id: string, @Body() dto: UpdateReportDto) {
+    return this.service.update(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.LabAdmin)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Audit('report.deleted')
+  async remove(
     @Param('id') id: string,
-    @Body() updateReportDto: UpdateReportDto,
-    @Request() req: any,
-  ): Promise<Report> {
-    return this.reportsService.update(id, updateReportDto, req.user.userId);
+    @Body('reason') reason?: string,
+  ): Promise<void> {
+    await this.service.softDelete(id, reason);
   }
 }

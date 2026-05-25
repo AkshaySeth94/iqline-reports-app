@@ -1,4 +1,6 @@
 export enum UserRole {
-  Admin = 'Admin',
+  SuperAdmin = 'SuperAdmin',
+  LabAdmin = 'LabAdmin',
+  Admin = 'Admin', // legacy v1 — migration promotes to LabAdmin; retained for grace-window JWT acceptance
   Patient = 'Patient',
 }

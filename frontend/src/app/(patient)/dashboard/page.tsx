@@ -1,124 +1,144 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import GlucoseChart from '@/components/GlucoseChart';
 import { useAuth } from '@/hooks/useAuth';
 import * as api from '@/lib/api';
-import { Report } from '@/types';
+import { humanTimeBand, labColor, toMgDl } from '@/lib/palette';
+import { LoadingState, ErrorState, EmptyState } from '@/components/States';
+import TosModal from './TosModal';
+import type { AggregatedReport, MealContext } from '@/types';
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function statusBadge(status: Report['status']) {
+function statusBadge(status: AggregatedReport['status']) {
   if (status === 'Final') return <span className="badge badge-success">Final</span>;
-  if (status === 'Corrected') return <span className="badge badge-warning">Corrected</span>;
-  return <span className="badge">{status}</span>;
+  return <span className="badge badge-warning">Corrected</span>;
 }
 
 export default function PatientDashboardPage() {
-  const { user } = useAuth({ required: true, role: 'Patient' });
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user, isAuthenticated, isLoading } = useAuth({
+    required: true,
+    role: 'Patient',
+  });
 
+  const reports = useQuery({
+    queryKey: ['patient', 'reports'],
+    queryFn: () => api.getMyReports(),
+    enabled: isAuthenticated && !isLoading,
+  });
+
+  // ToS modal — show once per local-storage flag (server also tracks termsAcknowledgedAt)
+  const [tosOpen, setTosOpen] = useState(false);
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const data = await api.getReports();
-        setReports(data);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch reports.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!isAuthenticated || typeof window === 'undefined') return;
+    const acked = localStorage.getItem('patient.tosAck');
+    if (!acked) setTosOpen(true);
+  }, [isAuthenticated]);
 
-    fetchReports();
-  }, []);
+  const [labFilter, setLabFilter] = useState<string | 'all'>('all');
+  const [mealFilter, setMealFilter] = useState<MealContext | 'all'>('all');
 
-  const chartData = useMemo(
-    () =>
-      [...reports]
-        .sort(
-          (a, b) =>
-            new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime(),
-        )
-        .map((report) => ({
-          name: new Date(report.reportDate).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          }),
-          glucoseValue: report.data.glucoseValue,
-        })),
-    [reports],
-  );
-
-  const kpis = useMemo(() => {
-    if (reports.length === 0) {
-      return { latest: null as number | null, average: null as number | null, count: 0 };
+  const allLabs = useMemo(() => {
+    if (!reports.data) return [] as { id: string; name: string }[];
+    const map = new Map<string, string>();
+    for (const r of reports.data) {
+      if (r.lab) map.set(r.lab._id, r.lab.name);
     }
-    const sorted = [...reports].sort(
-      (a, b) =>
-        new Date(b.reportDate).getTime() - new Date(a.reportDate).getTime(),
-    );
-    const values = reports.map((r) => r.data.glucoseValue);
-    const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
-    return {
-      latest: sorted[0].data.glucoseValue,
-      average: Math.round(avg * 10) / 10,
-      count: reports.length,
-    };
-  }, [reports]);
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [reports.data]);
+
+  const filtered = useMemo(() => {
+    if (!reports.data) return [];
+    return reports.data.filter((r) => {
+      if (labFilter !== 'all' && r.lab?._id !== labFilter) return false;
+      if (mealFilter !== 'all' && r.mealContext !== mealFilter) return false;
+      return true;
+    });
+  }, [reports.data, labFilter, mealFilter]);
+
+  const mostRecent = reports.data && reports.data.length > 0 ? reports.data[0] : null;
 
   return (
     <div className="stack stack-6">
       <div className="page-header">
         <div>
           <h1 className="page-title">Welcome back, {user?.name || 'Patient'}</h1>
-          <p className="page-subtitle">Your recent glucose reports and trends.</p>
+          <p className="page-subtitle">Your glucose readings across every lab you&apos;ve visited.</p>
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {tosOpen && (
+        <TosModal
+          onAcknowledge={async () => {
+            try { await api.ackTerms(); } catch { /* localStorage still suppresses */ }
+            localStorage.setItem('patient.tosAck', new Date().toISOString());
+            setTosOpen(false);
+          }}
+        />
+      )}
 
-      {loading ? (
-        <div className="card">
-          <div className="card-body">
-            <p className="muted">Loading dashboard…</p>
-          </div>
-        </div>
-      ) : (
+      {reports.isLoading && <LoadingState />}
+      {reports.error && (
+        <ErrorState message={(reports.error as Error).message} onRetry={() => reports.refetch()} />
+      )}
+      {reports.data && reports.data.length === 0 && (
+        <EmptyState
+          title="You have no reports yet"
+          body="Visit one of our partnered labs to add your first reading."
+        />
+      )}
+
+      {reports.data && reports.data.length > 0 && (
         <>
-          <div className="grid grid-cols-3">
-            <div className="kpi">
-              <span className="kpi-label">Latest glucose</span>
-              <span className="kpi-value">
-                {kpis.latest !== null ? kpis.latest : '—'}
-                {kpis.latest !== null && (
-                  <span className="kpi-meta ml-1.5">mg/dL</span>
-                )}
-              </span>
-              <span className="kpi-meta">Most recent report value</span>
+          {mostRecent && (
+            <div className="card">
+              <div className="card-body flex justify-between items-center">
+                <div>
+                  <div className="muted">Most recent reading</div>
+                  <div className="kpi-value">
+                    {toMgDl((mostRecent.data as any).glucoseValue, mostRecent.unit)}
+                    <span className="kpi-meta ml-1">mg/dL</span>
+                  </div>
+                  <div className="muted">
+                    {mostRecent.lab?.name || 'Unknown lab'} · {humanTimeBand(mostRecent.reportDate)}
+                  </div>
+                </div>
+                <span
+                  className="lab-swatch"
+                  style={{ background: labColor(mostRecent.lab?._id || null) }}
+                  aria-hidden
+                />
+              </div>
             </div>
-            <div className="kpi">
-              <span className="kpi-label">Average</span>
-              <span className="kpi-value">
-                {kpis.average !== null ? kpis.average : '—'}
-                {kpis.average !== null && (
-                  <span className="kpi-meta ml-1.5">mg/dL</span>
-                )}
-              </span>
-              <span className="kpi-meta">Across all reports</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-label">Reports</span>
-              <span className="kpi-value">{kpis.count}</span>
-              <span className="kpi-meta">Total on file</span>
+          )}
+
+          <div className="card">
+            <div className="card-body stack stack-3">
+              <div className="chips" role="group" aria-label="Filter by lab">
+                <button className={`chip ${labFilter === 'all' ? 'chip-active' : ''}`} onClick={() => setLabFilter('all')}>
+                  All labs
+                </button>
+                {allLabs.map((l) => (
+                  <button
+                    key={l.id}
+                    className={`chip ${labFilter === l.id ? 'chip-active' : ''}`}
+                    onClick={() => setLabFilter(l.id)}
+                  >
+                    <span className="lab-swatch-sm" style={{ background: labColor(l.id) }} aria-hidden /> {l.name}
+                  </button>
+                ))}
+              </div>
+              <div className="chips" role="group" aria-label="Filter by meal context">
+                {(['all', 'Fasting', 'PostMeal', 'Random'] as const).map((m) => (
+                  <button
+                    key={m}
+                    className={`chip ${mealFilter === m ? 'chip-active' : ''}`}
+                    onClick={() => setMealFilter(m as any)}
+                  >
+                    {m === 'all' ? 'All meals' : m}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -126,58 +146,57 @@ export default function PatientDashboardPage() {
             <div className="card-header">
               <div>
                 <div className="card-title">Glucose trend</div>
-                <div className="card-subtitle">Chronological values across all reports</div>
+                <div className="card-subtitle">Color + shape encode the source lab.</div>
               </div>
             </div>
             <div className="card-body">
-              <GlucoseChart data={chartData} />
+              <GlucoseChart reports={filtered as AggregatedReport[]} />
             </div>
           </div>
 
           <div className="card">
             <div className="card-header">
               <div>
-                <div className="card-title">Your reports</div>
-                <div className="card-subtitle">{reports.length} report{reports.length === 1 ? '' : 's'}</div>
+                <div className="card-title">Reports</div>
+                <div className="card-subtitle">{filtered.length} matching</div>
               </div>
             </div>
             <div className="card-body card-body--flush">
-              {reports.length === 0 ? (
-                <div className="empty">
-                  <div className="empty-title">No reports yet</div>
-                  <div>New lab reports will appear here once they&apos;re published.</div>
-                </div>
+              {filtered.length === 0 ? (
+                <EmptyState title="No reports match the current filters" />
               ) : (
-                <div className="table-wrap">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Glucose</th>
-                        <th>Status</th>
-                        <th>Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...reports]
-                        .sort(
-                          (a, b) =>
-                            new Date(b.reportDate).getTime() -
-                            new Date(a.reportDate).getTime(),
-                        )
-                        .map((report) => (
-                          <tr key={report._id}>
-                            <td>{formatDate(report.reportDate)}</td>
-                            <td className="tabular-nums">
-                              <strong>{report.data.glucoseValue}</strong>
-                              <span className="muted ml-1">mg/dL</span>
-                            </td>
-                            <td>{statusBadge(report.status)}</td>
-                            <td className="muted">{report.notes || '—'}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                <div className="stack stack-2 p-3">
+                  {filtered.map((r) => (
+                    <article key={r._id} className="card-inset">
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <div className="font-semibold">
+                            <span
+                              className="lab-swatch-sm"
+                              style={{ background: labColor(r.lab?._id || null) }}
+                              aria-hidden
+                            />{' '}
+                            {r.lab?.name || 'Unknown lab'}
+                            {r.lab?.status === 'Suspended' && (
+                              <span className="badge badge-warning ml-2">Lab suspended</span>
+                            )}
+                          </div>
+                          <div className="muted">{new Date(r.reportDate).toLocaleDateString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="kpi-value text-base">
+                            <strong>{(r.data as any).glucoseValue}</strong>
+                            <span className="kpi-meta ml-1">{r.unit}</span>
+                          </div>
+                          <div className="flex gap-1 justify-end mt-1">
+                            <span className="badge">{r.mealContext}</span>
+                            {statusBadge(r.status)}
+                          </div>
+                        </div>
+                      </div>
+                      {r.notes && <p className="muted mt-2">{r.notes}</p>}
+                    </article>
+                  ))}
                 </div>
               )}
             </div>

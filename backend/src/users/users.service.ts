@@ -1,65 +1,66 @@
-import {
-  Injectable,
-  OnModuleInit,
-  ConflictException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import { Model, Types } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { UserRole } from '../common/enums/user-role.enum';
+import { EntityStatus } from '../common/enums/status.enum';
 import { CreatePatientDto } from './dto/create-patient.dto';
+import { normalizePhone } from '../common/utils/phone';
 
 @Injectable()
-export class UsersService implements OnModuleInit {
+export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async onModuleInit(): Promise<void> {
-    const adminExists = await this.userModel
-      .findOne({ role: UserRole.Admin })
-      .exec();
-    if (!adminExists) {
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash('Hello@123!', salt);
-
-      await new this.userModel({
-        phone: '9999942496',
-        password: hashedPassword,
-        role: UserRole.Admin,
-        name: 'Default Admin',
-      }).save();
-      this.logger.log('Default admin user created.');
-    }
-  }
-
   async findByPhone(phone: string): Promise<User | null> {
-    return this.userModel.findOne({ phone }).select('+password').exec();
+    return this.userModel.findOne({ phone }).exec();
   }
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
   }
 
-  async createPatient(createPatientDto: CreatePatientDto): Promise<User> {
-    const { phone, name } = createPatientDto;
-    const existingUser = await this.findByPhone(phone);
-    if (existingUser) {
-      throw new ConflictException('Phone number is already in use.');
+  /**
+   * Create a patient. Used by LabAdmin "add new patient" flow (Epic 3)
+   * and exposed as a thin legacy admin endpoint for migration parity.
+   */
+  async createPatient(
+    dto: CreatePatientDto,
+    opts: { dateOfBirth?: Date | string } = {},
+  ): Promise<User> {
+    const phone = normalizePhone(dto.phone);
+    const existing = await this.userModel.findOne({ phone }).exec();
+    if (existing) {
+      throw new ConflictException({
+        message: 'Phone number is already in use.',
+        existing: {
+          _id: existing._id,
+          name: existing.name,
+          dateOfBirth: (existing as any).dateOfBirth ?? null,
+        },
+      });
     }
-
-    const newUser = new this.userModel({
+    const created = new this.userModel({
       phone,
-      name,
+      name: dto.name,
       role: UserRole.Patient,
+      status: EntityStatus.Active,
+      labId: null,
+      ...(opts.dateOfBirth ? { dateOfBirth: opts.dateOfBirth } : {}),
     });
-
-    return newUser.save();
+    return created.save();
   }
 
   async findAllPatients(): Promise<User[]> {
     return this.userModel.find({ role: UserRole.Patient }).exec();
+  }
+
+  async findByPhoneGlobal(phone: string): Promise<User | null> {
+    return this.userModel.findOne({ phone: normalizePhone(phone) }).exec();
+  }
+
+  async findByIds(ids: Array<string | Types.ObjectId>): Promise<User[]> {
+    return this.userModel.find({ _id: { $in: ids } }).exec();
   }
 }

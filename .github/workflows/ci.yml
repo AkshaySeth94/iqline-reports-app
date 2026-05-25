@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    env:
+      MONGODB_URI: mongodb://localhost:27017/labdash-ci
+      JWT_SECRET: ci-jwt-secret-must-be-long-enough-32-chars
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - name: Install root deps (workspaces)
+        run: npm ci --workspaces --include-workspace-root
+      - name: Backend build
+        working-directory: backend
+        run: npm run build
+      - name: Backend unit tests
+        working-directory: backend
+        run: npm test
+      - name: Migration round-trip + orphan check + tenant-isolation E2E
+        working-directory: backend
+        run: |
+          npm run migrate:up
+          npm run test:e2e
+      - name: Audit-presence lint
+        working-directory: backend
+        run: npm run lint:audit-presence
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - name: Install
+        run: npm ci --workspaces --include-workspace-root
+      - name: Build
+        working-directory: frontend
+        run: npm run build

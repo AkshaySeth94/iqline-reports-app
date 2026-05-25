@@ -3,11 +3,19 @@
 import { useContext, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { AuthContext } from '@/contexts/AuthContext';
+import type { UserRole } from '@/types';
 
 interface UseAuthOptions {
   required?: boolean;
-  role?: 'Admin' | 'Patient';
+  role?: UserRole | UserRole[];
 }
+
+const HOME_BY_ROLE: Record<UserRole, string> = {
+  SuperAdmin: '/super',
+  LabAdmin: '/panel',
+  Admin: '/panel',
+  Patient: '/dashboard',
+};
 
 export function useAuth(options: UseAuthOptions = {}) {
   const context = useContext(AuthContext);
@@ -18,28 +26,41 @@ export function useAuth(options: UseAuthOptions = {}) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const { user, isAuthenticated, isLoading } = context;
+  const { user, isAuthenticated, isLoading, forcePasswordChange } = context;
 
   useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    const isAuthPage = pathname === '/login';
+    if (isLoading) return;
+    const isLoginPath = pathname.startsWith('/login');
+    const isChangePasswordPath = pathname === '/change-password';
 
     if (options.required && !isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    if (isAuthenticated && isAuthPage) {
-      router.push(user?.role === 'Admin' ? '/panel' : '/dashboard');
+    if (isAuthenticated && isLoginPath) {
+      router.push(user ? HOME_BY_ROLE[user.role] : '/login');
       return;
     }
 
-    if (options.role && user?.role !== options.role) {
-      // Redirect to their own dashboard if they land on the wrong page
-      router.push(user?.role === 'Admin' ? '/panel' : '/dashboard');
+    // Hard-redirect users with a temp password to the change-password page.
+    if (
+      isAuthenticated &&
+      forcePasswordChange &&
+      !isChangePasswordPath
+    ) {
+      router.push('/change-password');
+      return;
+    }
+
+    const allowed = Array.isArray(options.role)
+      ? options.role
+      : options.role
+      ? [options.role]
+      : null;
+
+    if (allowed && user && !allowed.includes(user.role)) {
+      router.push(HOME_BY_ROLE[user.role]);
     }
   }, [
     user,
