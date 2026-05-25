@@ -42,7 +42,7 @@ Before the development stage runs, the wrapper executes these commands in order 
         "--src-dir",
         "--use-npm",
         "--import-alias", "@/*",
-        "--no-tailwind",
+        "--tailwind",
         "--no-turbopack",
         "--skip-install"
       ],
@@ -50,7 +50,8 @@ Before the development stage runs, the wrapper executes these commands in order 
       "expected_files": [
         "frontend/package.json",
         "frontend/tsconfig.json",
-        "frontend/src/app/page.tsx"
+        "frontend/src/app/page.tsx",
+        "frontend/tailwind.config.ts"
       ],
       "timeoutSeconds": 180
     }
@@ -100,6 +101,12 @@ The recommended deployment method is a single Docker container.
     ```
 3.  Run the container, ensuring all required environment variables are provided.
 
+## Styling system
+- **Tailwind CSS** (configured by create-next-app via `--tailwind`).
+- All components use utility classes only — no inline `style={{...}}` for static values.
+- The dark theme (FR-14) will be implemented using Tailwind's `dark` variant, configured in `tailwind.config.ts`.
+- Optional companion: `clsx` for conditional class composition.
+
 ## Environment Variables
 
 The application requires two sets of environment variables, one for each component. The development stage will produce `.env.example` files at the specified paths.
@@ -117,8 +124,8 @@ The application requires two sets of environment variables, one for each compone
 | Package                    | Version    | Why                                      |
 |----------------------------|------------|------------------------------------------|
 | @nestjs/common             | ^11.0.0    | NestJS core                              |
-| @nestjs/core               | ^11.0.0    | NestJS core                              |
 | @nestjs/config             | ^3.2.2     | Environment variable management          |
+| @nestjs/core               | ^11.0.0    | NestJS core                              |
 | @nestjs/jwt                | ^10.2.0    | JWT authentication                       |
 | @nestjs/mongoose           | ^10.0.6    | Mongoose integration for MongoDB         |
 | @nestjs/passport           | ^10.0.3    | Authentication strategies                |
@@ -159,6 +166,8 @@ The application requires two sets of environment variables, one for each compone
 ### Frontend (Node 22 LTS, Next.js 14)
 | Package                    | Version    | Why                                      |
 |----------------------------|------------|------------------------------------------|
+| clsx                       | ^2.1.1     | Conditional class composition            |
+| lucide-react               | ^0.395.0   | Icon library                             |
 | next                       | 14.2.3     | React framework                          |
 | react                      | ^18        | UI library                               |
 | react-dom                  | ^18        | DOM renderer for React                   |
@@ -174,10 +183,13 @@ The application requires two sets of environment variables, one for each compone
 | @types/node                | ^20        | Type definitions for Node.js             |
 | @types/react               | ^18        | Type definitions for React               |
 | @types/react-dom           | ^18        | Type definitions for React DOM           |
+| autoprefixer               | ^10.4.19   | Tailwind CSS dependency                  |
 | eslint                     | ^8         | Linter                                   |
 | eslint-config-next         | 14.2.3     | ESLint configuration for Next.js         |
 | jest                       | ^29.7.0    | Test runner                              |
 | jest-environment-jsdom     | ^29.7.0    | DOM environment for component tests      |
+| postcss                    | ^8.4.38    | Tailwind CSS dependency                  |
+| tailwindcss                | ^3.4.1     | Styling system (FR-14)                   |
 | typescript                 | ^5         | TypeScript compiler                      |
 
 ## Health Checks / Smoke Tests

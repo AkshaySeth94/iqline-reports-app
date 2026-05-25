@@ -13,7 +13,8 @@
       "commit": "b3f29b10e8d0"
     },
     "architect": {
-      "status": "pending"
+      "status": "done",
+      "ts": "2026-05-25T12:36:27.213Z"
     },
     "epics": {
       "status": "pending"
@@ -237,7 +238,7 @@
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-25T12:34:48.317Z",
+  "updatedAt": "2026-05-25T12:36:27.213Z",
   "runCount": 3,
   "priorRuns": [
     {

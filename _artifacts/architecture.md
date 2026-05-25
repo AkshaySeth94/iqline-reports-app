@@ -37,7 +37,7 @@ The foundation is a TypeScript-based monorepo containing a Next.js frontend and 
 -   **Backend API**: **NestJS 11.0**. It provides a structured, modular architecture that is ideal for building maintainable and scalable APIs.
     -   Scaffold command: `npx --yes @nestjs/cli@latest new backend --skip-git --package-manager npm`
 -   **Web Frontend**: **Next.js 14.2**. It will serve both the Patient Application and the Admin Panel. Its App Router and server-side rendering capabilities are well-suited for this project.
-    -   Scaffold command: `npx --yes create-next-app@latest frontend --typescript --eslint --app --src-dir --use-npm --import-alias "@/*" --no-tailwind --no-turbopack`
+    -   Scaffold command: `npx --yes create-next-app@latest frontend --typescript --eslint --app --src-dir --use-npm --import-alias "@/*" --tailwind --no-turbopack`
 -   **Database Access**: **Mongoose** with `@nestjs/mongoose`. This is the idiomatic choice for integrating MongoDB with NestJS.
 
 The following decisions are inherited from these foundations:
@@ -83,6 +83,14 @@ The following decisions are inherited from these foundations:
 **Decision:** All API request and response bodies will be defined as Data Transfer Objects (DTOs) using TypeScript classes. The backend will use the `class-validator` and `class-transformer` libraries to automatically validate incoming request bodies against these DTOs.
 **Rationale:** This provides strong type safety and enforces the input validation requirement (NFR-3) at the application's entry point, preventing invalid data from reaching the business logic. It serves as a clear, self-documenting contract between the frontend and backend.
 **Affects:** Backend (Controllers), Frontend (API client), FR-9, FR-10, FR-11.
+
+### ADR-styling: Tailwind CSS for Styling
+**Decision:** The frontend application will use Tailwind CSS for all styling, including the implementation of the dark theme.
+**Rationale:** FR-14 requires a dark theme. Using a utility-first CSS framework like Tailwind provides a systematic way to manage styling, colors, and themes. It avoids inconsistent inline styles, promotes reusability, and makes implementing responsive design (NFR-7) and dark mode straightforward via its built-in variants (`dark:`). We trade away the component-based styling of libraries like Material UI, which is not required by the spec and adds more dependencies.
+**Affects:** Frontend (all components), FR-14, NFR-7.
+**Alternatives considered (if non-obvious):**
+*   **CSS-in-JS:** More complex setup and potential runtime performance overhead.
+*   **CSS Modules:** Good for scoping but less systematic for a design system without significant manual setup of design tokens. Tailwind provides this out of the box.
 
 ## 4. Implementation Patterns & Consistency Rules
 **Naming conventions**
@@ -135,7 +143,7 @@ The monorepo will have the following high-level structure:
 .
 ├── _artifacts/
 ├── _pipeline/
-│   └── build.Dockerfile        # NEW
+│   └── build.Dockerfile
 ├── backend/                    # NEW (via scaffolder)
 │   ├── src/
 │   │   ├── app.module.ts
@@ -154,8 +162,11 @@ The monorepo will have the following high-level structure:
 │   │       ├── (admin)/        # NEW (Route group for admin panel)
 │   │       │   └── panel/
 │   │       │       └── page.tsx
+│   │       ├── globals.css     # UPDATE (scaffolder adds tailwind directives)
 │   │       └── layout.tsx
 │   ├── package.json
+│   ├── postcss.config.js       # NEW (via scaffolder)
+│   ├── tailwind.config.ts      # NEW (via scaffolder)
 │   └── tsconfig.json
 └── package.json                # NEW (Root package.json for workspaces)
 ```
@@ -169,6 +180,7 @@ A vertical slice can be achieved by implementing in this order:
 4.  **Patient/Report CRUD**: Implement backend APIs for Admins to create patients (FR-9) and create/edit reports (FR-10, FR-11).
 5.  **Admin Panel UI**: Build the frontend for Admin login and report management.
 6.  **Patient Auth & Dashboard**: Implement Patient login (FR-1) and the patient-facing dashboard to view reports and charts (FR-3, FR-4, FR-5).
+7.  **Theming**: Implement the dark theme (FR-14) across all frontend components using the new styling system.
 
 **Cross-component dependencies**
 -   The `frontend` application is entirely dependent on the `backend` API.
@@ -179,12 +191,13 @@ A vertical slice can be achieved by implementing in this order:
 **Coherence check:** The chosen technologies (NestJS, Next.js, MongoDB) are highly compatible and form a modern, coherent MERN stack. The ADRs are consistent with each other.
 **Requirements coverage:**
 -   **FR-1 to FR-13**: All functional requirements are mapped to components in the project structure and addressed by the ADRs. FR-12 and FR-13, which mandate end-to-end functionality, are covered by the overall client-server architecture and the implementation of the defined API contracts (ADR-contracts).
+-   **FR-14 (Dark Theme)**: Covered by ADR-styling.
 -   **NFR-1 (HTTPS)**: Handled at the deployment/ingress level, outside the application code.
 -   **NFR-2 (RBAC)**: Covered by ADR-auth.
 -   **NFR-3 (Validation)**: Covered by ADR-contracts.
 -   **NFR-4 (Audit Logging)**: To be implemented as a dedicated module in the backend.
 -   **NFR-5 (Rate Limiting)**: To be implemented in the backend using `@nestjs/throttler`.
 -   **NFR-6 (Scalability)**: Covered by ADR-data.
--   **NFR-7 (Mobile-first)**: A core responsibility of the Next.js frontend implementation.
+-   **NFR-7 (Mobile-first)**: A core responsibility of the Next.js frontend implementation, supported by ADR-styling.
 **Implementation readiness:** This document provides a clear foundation. The Dev stage can proceed by bootstrapping the projects with the specified scaffolders and then implementing features in the sequence provided.
 **Gap analysis:** The plan covers all specified MVP requirements. There are no critical gaps.
