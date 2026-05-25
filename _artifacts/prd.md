@@ -205,6 +205,7 @@ None at this time. Decisions required for v1 have been made and are documented i
 1.  `[ASSUMPTION: A static OTP is a sufficient security measure for the initial MVP launch, to be replaced by a dynamic, SMS-based OTP in a future version.]` (from Section 4.1)
 2.  `[ASSUMPTION: The initial Admin user credentials are for bootstrapping purposes only and the operator will change them immediately upon first login.]` (from Section 4.3)
 3.  `[ASSUMPTION: Patients cannot self-register; they must be created by an Admin.]` (from Section 4.4)
+4.  `[ASSUMPTION: 50 concurrent users is a reasonable load target for the MVP.]` (from Section 10.2)
 
 ## 10. Cross-Cutting Non-Functional Requirements
 ### 10.1 Security
@@ -213,9 +214,20 @@ None at this time. Decisions required for v1 have been made and are documented i
 *   **NFR-3: Input Validation**: All user-provided input on both the client and server must be validated to prevent common vulnerabilities like XSS and injection attacks.
 *   **NFR-4: Audit Logging**: The system must log key security events, including successful/failed logins for both roles and all report creation/modification events by Admins. The log must include the timestamp, actor (e.g., Admin phone number), and the action performed.
 *   **NFR-5: Rate Limiting**: Authentication endpoints (`/login`) must be rate-limited to 5 requests per minute per IP address to protect against brute-force attacks.
+*   **NFR-8: Secure Password Storage**: Admin passwords must be securely hashed (e.g., using bcrypt or Argon2) with a unique salt for each user before being stored in the database.
+*   **NFR-9: Dependency Vulnerability Scanning**: The project's dependencies must be scanned for known vulnerabilities as part of the CI/CD pipeline. High or critical severity vulnerabilities must be remediated before deployment.
+*   **NFR-10: Secure Headers**: The application should use security-related HTTP headers to protect against common attacks (e.g., `Content-Security-Policy`, `X-Content-Type-Options`, `Strict-Transport-Security`).
 
 ### 10.2 Architecture
 *   **NFR-6: Scalability**: The architecture must be designed to allow for the addition of new report types in the future without requiring a full rewrite of the core application. This implies a flexible database schema for reports.
+*   **NFR-11: Performance Baseline**: Key API endpoints (e.g., patient login, fetching reports) should respond within 500ms at the 95th percentile under a load of 50 concurrent users. [ASSUMPTION: 50 concurrent users is a reasonable load target for the MVP.]
+*   **NFR-12: Stateless Services**: Backend services must be stateless to allow for horizontal scaling. Any session state must be managed externally (e.g., via JWTs or a distributed cache like Redis).
 
 ### 10.3 User Experience
 *   **NFR-7: Mobile-First Responsive UI**: The Patient-facing application must be designed for a mobile-first experience (e.g., viewport width 360px) and be fully responsive to work on common desktop browser resolutions. The Admin Panel must be functional on standard desktop resolutions (e.g., 1280px width and above).
+
+### 10.4 Observability
+*   **NFR-13: Structured Logging**: All application services must generate structured logs (e.g., JSON format). Logs must include a timestamp, log level, service name, and a correlation ID to trace requests across services.
+*   **NFR-14: Application Metrics**: The backend application must expose key performance indicators (KPIs) as metrics. This must include API request rates, error rates, and latency (e.g., Apdex score or percentile timings) for all public endpoints.
+*   **NFR-15: Health Check Endpoint**: The backend application must provide a health check endpoint (e.g., `/healthz`) that monitoring systems can poll to verify the service is running and able to connect to its dependencies (e.g., database).
+*   **NFR-16: Centralized Logging**: All application logs must be aggregated into a centralized logging system to facilitate searching, analysis, and alerting.
