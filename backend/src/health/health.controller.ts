@@ -1,24 +1,22 @@
+import { Controller, Get } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  ServiceUnavailableException,
-} from '@nestjs/common';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+  HealthCheck,
+  HealthCheckService,
+  MongooseHealthIndicator,
+} from '@nestjs/terminus';
 import { Public } from '../auth/decorators/public.decorator';
 
-@Controller('health')
+@Controller('healthz')
 export class HealthController {
-  constructor(@InjectConnection() private readonly connection: Connection) {}
+  constructor(
+    private health: HealthCheckService,
+    private db: MongooseHealthIndicator,
+  ) {}
 
   @Public()
   @Get()
-  check(): { status: string } {
-    const isConnected = this.connection.readyState === 1;
-    if (isConnected) {
-      return { status: 'ok' };
-    } else {
-      throw new ServiceUnavailableException('Database not connected');
-    }
+  @HealthCheck()
+  check() {
+    return this.health.check([() => this.db.pingCheck('mongoose')]);
   }
 }

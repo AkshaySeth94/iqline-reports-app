@@ -1,40 +1,56 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
-import { getConnectionToken } from '@nestjs/mongoose';
-import { ServiceUnavailableException } from '@nestjs/common';
+import {
+  HealthCheckService,
+  MongooseHealthIndicator,
+  HealthCheckResult,
+} from '@nestjs/terminus';
 
 describe('HealthController', () => {
   let controller: HealthController;
+  let healthCheckService: HealthCheckService;
 
-  const mockConnection = {
-    readyState: 1,
+  const mockHealthCheckService = {
+    check: jest.fn(),
+  };
+
+  const mockMongooseHealthIndicator = {
+    pingCheck: jest.fn(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [
+        { provide: HealthCheckService, useValue: mockHealthCheckService },
         {
-          provide: getConnectionToken(),
-          useValue: mockConnection,
+          provide: MongooseHealthIndicator,
+          useValue: mockMongooseHealthIndicator,
         },
       ],
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
+    healthCheckService = module.get<HealthCheckService>(HealthCheckService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return { status: "ok" } when database is connected', () => {
-    mockConnection.readyState = 1;
-    expect(controller.check()).toEqual({ status: 'ok' });
-  });
+  describe('check', () => {
+    it('should call health check service and return its result', async () => {
+      const healthResult: HealthCheckResult = {
+        status: 'ok',
+        info: { mongoose: { status: 'up' } },
+        error: {},
+        details: { mongoose: { status: 'up' } },
+      };
+      mockHealthCheckService.check.mockResolvedValue(healthResult);
 
-  it('should throw ServiceUnavailableException when database is not connected', () => {
-    mockConnection.readyState = 0;
-    expect(() => controller.check()).toThrow(ServiceUnavailableException);
+      const result = await controller.check();
+      expect(healthCheckService.check).toHaveBeenCalled();
+      expect(result).toEqual(healthResult);
+    });
   });
 });
