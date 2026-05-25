@@ -23,9 +23,13 @@
       "commit": "e3a4115a4df7"
     },
     "dev": {
-      "status": "done",
+      "status": "awaiting_approval",
       "ts": "2026-05-25T12:10:01.206Z",
-      "commit": "8d37bbbc6d9a"
+      "commit": "8d37bbbc6d9a",
+      "awaitingPreSha": "fdd183503d475507ffcded2e37a2564d4e67ff71",
+      "awaitingPostSha": "3dfb0f969616feb21fcf711a03b5091897d9fc6a",
+      "awaitingSpecRef": "spec-0df6216fdef0",
+      "awaitingAt": "2026-05-25T12:10:10Z"
     },
     "qa": {
       "status": "pending"
