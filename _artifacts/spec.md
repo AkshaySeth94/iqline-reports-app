@@ -21,3 +21,9 @@ Deliver: patient app, admin panel, database schema, REST APIs, and secure produc
 ## Change request — Run #2 (2026-05-24)
 
 fix: ensure the patient login form, dashboard, and admin panel are functional with real form handlers and real chart data
+
+---
+
+## Change request — Run #3 (2026-05-25)
+
+I want to focus on non functional requirements in which I want this project to be scalable, secure and have necessary observability incorporated.
