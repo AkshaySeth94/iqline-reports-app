@@ -2,16 +2,28 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <main>
-      <h1>Welcome to LabDash</h1>
-      <div>
-        <Link href="/login">Login</Link>
-      </div>
-      <div>
-        <Link href="/(patient)/dashboard">Go to Patient Dashboard (dev)</Link>
-      </div>
-      <div>
-        <Link href="/(admin)/panel">Go to Admin Panel (dev)</Link>
+    <main className="landing">
+      <div className="landing-inner">
+        <span className="landing-eyebrow">
+          <span className="brand-mark" style={{ width: 18, height: 18, fontSize: 10 }}>LD</span>
+          LabDash
+        </span>
+        <h1 className="landing-title">Your lab reports, beautifully simplified.</h1>
+        <p className="landing-sub">
+          Track glucose trends, review lab history, and manage patients from a single,
+          calm dashboard.
+        </p>
+        <div className="landing-actions">
+          <Link href="/login" className="btn btn-primary">
+            Sign in
+          </Link>
+          <Link href="/dashboard" className="btn btn-secondary">
+            Patient demo
+          </Link>
+          <Link href="/panel" className="btn btn-ghost">
+            Admin demo
+          </Link>
+        </div>
       </div>
     </main>
   );

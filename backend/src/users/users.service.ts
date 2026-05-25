@@ -36,7 +36,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    return this.userModel.findOne({ phone }).exec();
+    return this.userModel.findOne({ phone }).select('+password').exec();
   }
 
   async findById(id: string): Promise<User | null> {
@@ -57,5 +57,9 @@ export class UsersService implements OnModuleInit {
     });
 
     return newUser.save();
+  }
+
+  async findAllPatients(): Promise<User[]> {
+    return this.userModel.find({ role: UserRole.Patient }).exec();
   }
 }
