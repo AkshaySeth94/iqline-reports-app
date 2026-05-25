@@ -18,7 +18,8 @@
       "commit": "0cc8e9c25d2d"
     },
     "epics": {
-      "status": "pending"
+      "status": "done",
+      "ts": "2026-05-25T13:59:53.693Z"
     },
     "dev": {
       "status": "pending"
@@ -236,10 +237,130 @@
       "story": "Story-1.9",
       "prd": "FR-17",
       "arch": "ADR-creds"
+    },
+    {
+      "story": "Story-1.1",
+      "prd": "bootstrap",
+      "arch": "ADR-monorepo"
+    },
+    {
+      "story": "Story-1.2",
+      "prd": "FR-7",
+      "arch": "ADR-state"
+    },
+    {
+      "story": "Story-1.3",
+      "prd": "FR-7",
+      "arch": "ADR-state"
+    },
+    {
+      "story": "Story-2.1",
+      "prd": "FR-6",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-2.2",
+      "prd": "FR-8",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-2.3",
+      "prd": "FR-9",
+      "arch": "ADR-contracts"
+    },
+    {
+      "story": "Story-2.4",
+      "prd": "FR-10",
+      "arch": "ADR-data"
+    },
+    {
+      "story": "Story-2.5",
+      "prd": "FR-11",
+      "arch": "ADR-data"
+    },
+    {
+      "story": "Story-2.6",
+      "prd": "FR-13",
+      "arch": "ADR-contracts"
+    },
+    {
+      "story": "Story-3.1",
+      "prd": "FR-1",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-3.2",
+      "prd": "FR-2",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-3.3",
+      "prd": "FR-3",
+      "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-3.4",
+      "prd": "FR-4",
+      "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-3.5",
+      "prd": "FR-5",
+      "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-3.6",
+      "prd": "FR-12",
+      "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-4.1",
+      "prd": "NFR-3",
+      "arch": "ADR-contracts"
+    },
+    {
+      "story": "Story-4.2",
+      "prd": "NFR-2",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-4.3",
+      "prd": "NFR-5",
+      "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-4.4",
+      "prd": "NFR-4",
+      "arch": "ADR-state"
+    },
+    {
+      "story": "Story-4.5",
+      "prd": "NFR-7",
+      "arch": "ADR-runtime"
+    },
+    {
+      "story": "Story-4.6",
+      "prd": "NFR-10",
+      "arch": "ADR-security-hardening"
+    },
+    {
+      "story": "Story-5.1",
+      "prd": "NFR-13",
+      "arch": "ADR-observability"
+    },
+    {
+      "story": "Story-5.2",
+      "prd": "NFR-15",
+      "arch": "ADR-observability"
+    },
+    {
+      "story": "Story-5.3",
+      "prd": "NFR-14",
+      "arch": "ADR-observability"
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-25T13:56:11.220Z",
+  "updatedAt": "2026-05-25T13:59:53.693Z",
   "runCount": 3,
   "priorRuns": [
     {

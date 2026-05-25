@@ -24,6 +24,15 @@
 *   **NFR-5:** Rate Limiting
 *   **NFR-6:** Scalability
 *   **NFR-7:** Mobile-First Responsive UI
+*   **NFR-8:** Secure Password Storage
+*   **NFR-9:** Dependency Vulnerability Scanning
+*   **NFR-10:** Secure Headers
+*   **NFR-11:** Performance Baseline
+*   **NFR-12:** Stateless Services
+*   **NFR-13:** Structured Logging
+*   **NFR-14:** Application Metrics
+*   **NFR-15:** Health Check Endpoint
+*   **NFR-16:** Centralized Logging
 
 ## FR Coverage Map
 | Requirement | Epic / Story |
@@ -34,7 +43,7 @@
 | FR-4        | Epic 3 / Story 3.4 |
 | FR-5        | Epic 3 / Story 3.5 |
 | FR-6        | Epic 2 / Story 2.1 |
-| FR-7        | Epic 1 / Story 1.2 |
+| FR-7        | Epic 1 / Story 1.2, 1.3 |
 | FR-8        | Epic 2 / Story 2.2 |
 | FR-9        | Epic 2 / Story 2.3 |
 | FR-10       | Epic 2 / Story 2.4 |
@@ -47,13 +56,18 @@
 | NFR-5       | Epic 4 / Story 4.3 |
 | NFR-6       | Epic 1 / Story 1.3 |
 | NFR-7       | Epic 4 / Story 4.5 |
+| NFR-8       | Epic 1 / Story 1.3 |
+| NFR-10      | Epic 4 / Story 4.6 |
+| NFR-13      | Epic 5 / Story 5.1 |
+| NFR-14      | Epic 5 / Story 5.3 |
+| NFR-15      | Epic 5 / Story 5.2 |
 
 ## Epic List
 
 ## Epic 1: Project Foundation & Initial Setup
 
 This epic establishes the core technical foundation of the project. After this epic, developers will have a working monorepo with a basic frontend and backend application, connected to a database, and seeded with the initial administrative user required for all subsequent functionality. This epic does not deliver direct user-facing value but is a necessary prerequisite for all other epics.
-**FRs covered:** FR-7, NFR-6
+**FRs covered:** FR-7, NFR-6, NFR-8
 
 ### Story 1.1: Initialize Monorepo Project Structure
 `traces: { prd: bootstrap, arch: ADR-monorepo }`
@@ -318,7 +332,7 @@ So that I can see my actual lab results and trends.
 ## Epic 4: Application Hardening & Security
 
 This epic focuses on implementing the cross-cutting non-functional requirements that ensure the application is secure, robust, and provides a good user experience. It covers server-side validation, role-based access, protection against common attacks, audit logging, and mobile responsiveness.
-**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
+**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7, NFR-10
 
 ### Story 4.1: Implement Server-Side Input Validation
 `traces: { prd: NFR-3, arch: ADR-contracts }`
@@ -399,3 +413,67 @@ So that I can easily check my results on the go.
 **Given** I am viewing the same dashboard on a desktop with a 1280px wide viewport
 **When** I view the list of reports and the chart
 **Then** the layout adapts to use the available space effectively without looking stretched or broken.
+
+### Story 4.6: Implement Secure HTTP Headers
+`traces: { prd: NFR-10, arch: ADR-security-hardening }`
+
+As a developer,
+I want the application to set security-related HTTP headers on all responses,
+So that the application is protected against common web vulnerabilities like clickjacking and XSS.
+
+**Acceptance Criteria:**
+
+**Given** the application is running
+**When** any API response is sent from the backend
+**Then** the response includes headers such as `Strict-Transport-Security`, `X-Content-Type-Options`, and a restrictive `Content-Security-Policy`.
+**And** the `X-Powered-By` header is not present.
+
+## Epic 5: Observability & Operational Readiness
+
+This epic implements the necessary features to monitor the application's health, performance, and behavior in a production environment. After this epic, operators will have structured logs, key performance metrics, and a health check endpoint, fulfilling the core observability requirements.
+**FRs covered:** NFR-13, NFR-14, NFR-15
+
+### Story 5.1: Implement Structured Logging
+`traces: { prd: NFR-13, arch: ADR-observability }`
+
+As an Operator,
+I want all backend services to emit structured (JSON) logs,
+So that I can easily search, filter, and analyze log data in a centralized logging system.
+
+**Acceptance Criteria:**
+
+**Given** the backend application is running
+**When** an API request is processed
+**Then** a log entry is written to stdout in JSON format.
+**And** the log entry contains a timestamp, log level, a message, and a correlation ID for the request.
+
+### Story 5.2: Implement Health Check Endpoint
+`traces: { prd: NFR-15, arch: ADR-observability }`
+
+As an Operator,
+I want a dedicated health check endpoint,
+So that automated monitoring systems can verify the application's status and its connectivity to dependencies.
+
+**Acceptance Criteria:**
+
+**Given** the backend application is running and connected to the database
+**When** I make a GET request to `/healthz`
+**Then** the application returns a 200 OK status.
+**And** the response body is a JSON object indicating the status of the service and its database connection (e.g., `{"status": "ok", "info": {"database": {"status": "up"}}}`).
+**Given** the backend application is running but cannot connect to the database
+**When** I make a GET request to `/healthz`
+**Then** the application returns a 503 Service Unavailable status.
+
+### Story 5.3: Implement Application Metrics Endpoint
+`traces: { prd: NFR-14, arch: ADR-observability }`
+
+As an Operator,
+I want the backend to expose key application metrics,
+So that I can monitor performance, error rates, and traffic patterns using a monitoring system.
+
+**Acceptance Criteria:**
+
+**Given** the backend application is running
+**When** I make a GET request to a `/metrics` endpoint
+**Then** the application returns a response in a format compatible with Prometheus.
+**And** the metrics include API request rates, error rates (by status code and endpoint), and request latency histograms for all public endpoints.
