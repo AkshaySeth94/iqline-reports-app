@@ -28,10 +28,11 @@ LabDash will bridge this gap by providing patients with instant, mobile-first ac
 *   **Admin**: A privileged user of the Admin Panel who can manage Patients and their Reports.
 *   **Admin Panel**: A secure web interface for Admins to perform their management tasks.
 *   **Glucose Marker Report**: A specific type of Report containing a patient's glucose value, report date, status, and optional notes.
-*   **OTP (One-Time Password)**: A temporary code used by a Patient to log in. For v1, this is a static, predefined value.
+*   **OTP (One-Time Password)**: A temporary code used by a Patient to log in.
 *   **Patient**: An end-user of the mobile web app who views their own lab reports. Identified by a unique phone number.
 *   **Patient Dashboard**: The main screen for a logged-in Patient, displaying their list of Reports and a chart of historical glucose values.
 *   **Report**: A digital record of a lab test result. For v1, this is exclusively a Glucose Marker Report.
+*   **SMS Gateway**: A third-party service that allows the application to send and receive SMS text messages to users' phone numbers.
 
 ## 4. Features
 
@@ -163,8 +164,41 @@ The Admin Panel forms for login, patient creation, and report management shall b
 - When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
 - The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
 
+### 4.6 Production Hardening
+**Description:** This feature introduces a set of critical enhancements to improve the security, reliability, and operational readiness of the LabDash portal for a production environment. It addresses key areas identified during a production-readiness assessment, moving the system from an MVP state to a more robust and secure service. This includes replacing the static OTP with a dynamic one via an SMS Gateway, and providing essential password management for Admins. [ASSUMPTION: The request to 'harden the system at production level' implies that previous constraints, such as 'no sms gateway', are now superseded by the need for production-grade security. An SMS gateway is now required.]
+
+**Functional Requirements:**
+
+#### FR-14: Patient Login with Dynamic OTP
+A Patient shall log in using a dynamic, time-sensitive OTP sent to their registered phone number via an SMS gateway. This requirement supersedes FR-1.
+
+**Consequences (testable):**
+- Given a registered Patient's phone number, the system sends a 6-digit numeric OTP to that number, which is valid for 5 minutes.
+- Upon entering the correct OTP, the system grants access and redirects the Patient to their Patient Dashboard.
+- Upon entering an incorrect or expired OTP, the system displays an error message and denies access.
+- The static OTP `123456` is no longer valid for login in production environments.
+- The OTP generation and delivery mechanism is rate-limited to 1 request per minute per phone number.
+- For non-production environments (e.g., development, testing), the system can be configured to use a static OTP (`123456`) to bypass the SMS gateway.
+
+#### FR-15: Admin Password Management
+A logged-in Admin can change their own password.
+
+**Consequences (testable):**
+- An Admin can access a "Change Password" form within the Admin Panel.
+- The form requires the Admin to enter their current password and a new password twice.
+- The new password must comply with the system's password policy (see NFR-8).
+- Upon successful change, the Admin is logged out and must log in with the new password.
+- If the current password is incorrect, an error message is displayed.
+
+#### FR-16: Force Password Change on First Login
+An Admin logging in with a system-generated or temporary password must be forced to change it before accessing any other part of the Admin Panel.
+
+**Consequences (testable):**
+- When the initial Admin (`9999942496`) logs in for the first time with the default password (`Hello@123!`), they are immediately redirected to the "Change Password" page.
+- The Admin cannot navigate to any other page in the Admin Panel until they have successfully changed their password.
+
 ## 5. Non-Goals (Explicit)
-*   Integration with any SMS gateway for OTP delivery.
+*   Integration with any SMS gateway for OTP delivery (Note: This is no longer a non-goal as of FR-14).
 *   Patient self-registration or profile management (e.g., changing their phone number).
 *   Uploading of any file types (e.g., PDF, JPG) for reports.
 *   Support for any report type other than the Glucose Marker Report.
@@ -175,21 +209,22 @@ The Admin Panel forms for login, patient creation, and report management shall b
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-13) listed above.
+*   All features and functional requirements (FR-1 to FR-16) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
-*   Basic security, logging, and architectural foundations for future expansion.
+*   Production-grade security, logging, and architectural foundations for future expansion.
 
 ### 6.2 Out of Scope for MVP
-*   Everything listed in Section 5 (Non-Goals).
+*   Everything listed in Section 5 (Non-Goals), with the exception of SMS gateway integration.
 *   Multi-language support.
 *   Advanced data analytics or reporting for Admins.
 *   Customizable report templates.
 
 ## 7. Success Metrics
 ### Primary
-*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12)
+*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12, FR-14)
 *   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10, FR-13)
+*   **Security Posture**: Achieve zero critical or high-severity vulnerabilities in automated dependency and static analysis scans. (Validates NFR-3, NFR-9, NFR-10)
 
 ### Secondary
 *   **Patient Adoption**: 80% of newly created Patients log in at least once within 72 hours of their first report being created.
@@ -197,6 +232,7 @@ The Admin Panel forms for login, patient creation, and report management shall b
 ### Counter-metrics (do not optimize)
 *   **Admin Data Entry Errors**: Rate of reports that are edited within 24 hours of creation.
 *   **Patient Support Inquiries**: Number of support requests per week related to login issues or inability to find a report.
+*   **Patient Login Failure Rate**: The percentage of login attempts that fail due to incorrect OTP entry does not exceed 15%.
 
 ## 8. Open Questions
 None at this time. Decisions required for v1 have been made and are documented in this PRD.
@@ -205,6 +241,7 @@ None at this time. Decisions required for v1 have been made and are documented i
 1.  `[ASSUMPTION: A static OTP is a sufficient security measure for the initial MVP launch, to be replaced by a dynamic, SMS-based OTP in a future version.]` (from Section 4.1)
 2.  `[ASSUMPTION: The initial Admin user credentials are for bootstrapping purposes only and the operator will change them immediately upon first login.]` (from Section 4.3)
 3.  `[ASSUMPTION: Patients cannot self-register; they must be created by an Admin.]` (from Section 4.4)
+4.  `[ASSUMPTION: The request to 'harden the system at production level' implies that previous constraints, such as 'no sms gateway', are now superseded by the need for production-grade security. An SMS gateway is now required.]` (from Section 4.6)
 
 ## 10. Cross-Cutting Non-Functional Requirements
 ### 10.1 Security
@@ -212,10 +249,20 @@ None at this time. Decisions required for v1 have been made and are documented i
 *   **NFR-2: Role-Based Access Control (RBAC)**: The system must enforce strict separation between Patient and Admin roles. A Patient API endpoint must never return data for another Patient.
 *   **NFR-3: Input Validation**: All user-provided input on both the client and server must be validated to prevent common vulnerabilities like XSS and injection attacks.
 *   **NFR-4: Audit Logging**: The system must log key security events, including successful/failed logins for both roles and all report creation/modification events by Admins. The log must include the timestamp, actor (e.g., Admin phone number), and the action performed.
-*   **NFR-5: Rate Limiting**: Authentication endpoints (`/login`) must be rate-limited to 5 requests per minute per IP address to protect against brute-force attacks.
+*   **NFR-5: Rate Limiting**: Critical endpoints must be rate-limited to protect against brute-force attacks and abuse. This includes: Admin login (5 requests/minute/IP), Patient OTP request (1 request/minute/phone number), and Patient OTP submission (5 requests/minute/phone number).
+*   **NFR-8: Admin Password Policy**: New passwords for Admins must be at least 12 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.
+*   **NFR-9: Secure Session Cookies**: Session cookies must be configured with `HttpOnly`, `Secure`, and `SameSite=Strict` flags.
+*   **NFR-10: Security Headers**: The application must set HTTP security headers to mitigate common attacks, including Content-Security-Policy (CSP), Strict-Transport-Security (HSTS), and X-Frame-Options.
+*   **NFR-11: Data-at-Rest Encryption**: All sensitive patient data stored in the database must be encrypted at rest.
 
 ### 10.2 Architecture
 *   **NFR-6: Scalability**: The architecture must be designed to allow for the addition of new report types in the future without requiring a full rewrite of the core application. This implies a flexible database schema for reports.
+*   **NFR-12: Externalized Configuration**: All environment-specific configuration, including database connection strings, API keys for the SMS gateway, and session secrets, must be managed via environment variables, not hardcoded in the application.
 
 ### 10.3 User Experience
 *   **NFR-7: Mobile-First Responsive UI**: The Patient-facing application must be designed for a mobile-first experience (e.g., viewport width 360px) and be fully responsive to work on common desktop browser resolutions. The Admin Panel must be functional on standard desktop resolutions (e.g., 1280px width and above).
+
+### 10.4 Operations
+*   **NFR-13: Health Check Endpoint**: The application must expose a `/health` endpoint that returns an HTTP 200 status code if the service is running and can connect to the database.
+*   **NFR-14: Structured Logging**: Application logs (for errors, warnings, and key events) must be written to standard output in a structured format (e.g., JSON) to facilitate log aggregation and analysis.
+*   **NFR-15: Database Backups**: The production database must be backed up automatically at least once every 24 hours, with backups retained for at least 14 days.
