@@ -24,6 +24,22 @@
 *   **NFR-5:** Rate Limiting
 *   **NFR-6:** Scalability
 *   **NFR-7:** Mobile-First Responsive UI
+*   **NFR-8:** Secure Credential Storage
+*   **NFR-9:** Secure Session Management
+*   **NFR-10:** Data Encryption at Rest
+*   **NFR-11:** OWASP Top 10 Protection
+*   **NFR-12:** System Performance
+*   **NFR-13:** Structured Application Logging
+*   **NFR-14:** Application Metrics
+*   **NFR-15:** Health Check Endpoint
+*   **NFR-16:** Dependency Security Scanning
+*   **NFR-17:** Stateless Application Tier
+*   **NFR-18:** Distributed Tracing
+*   **NFR-19:** Secure Secrets Management
+*   **NFR-20:** Principle of Least Privilege
+*   **NFR-21:** Database Connection Pooling
+*   **NFR-22:** Graceful Shutdown
+*   **NFR-23:** Configurable Log Levels
 
 ## FR Coverage Map
 | Requirement | Epic / Story |
@@ -47,6 +63,18 @@
 | NFR-5       | Epic 4 / Story 4.3 |
 | NFR-6       | Epic 1 / Story 1.3 |
 | NFR-7       | Epic 4 / Story 4.5 |
+| NFR-8       | Epic 4 / Story 4.7 |
+| NFR-9       | Epic 4 / Story 4.7 |
+| NFR-13      | Epic 4 / Story 4.6 |
+| NFR-14      | Epic 4 / Story 4.6 |
+| NFR-15      | Epic 4 / Story 4.6 |
+| NFR-17      | Epic 4 / Story 4.9 |
+| NFR-18      | Epic 4 / Story 4.6 |
+| NFR-19      | Epic 4 / Story 4.7 |
+| NFR-20      | Epic 4 / Story 4.8 |
+| NFR-21      | Epic 4 / Story 4.8 |
+| NFR-22      | Epic 4 / Story 4.8 |
+| NFR-23      | Epic 4 / Story 4.6 |
 
 ## Epic List
 
@@ -318,7 +346,7 @@ So that I can see my actual lab results and trends.
 ## Epic 4: Application Hardening & Security
 
 This epic focuses on implementing the cross-cutting non-functional requirements that ensure the application is secure, robust, and provides a good user experience. It covers server-side validation, role-based access, protection against common attacks, audit logging, and mobile responsiveness.
-**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7
+**FRs covered:** NFR-2, NFR-3, NFR-4, NFR-5, NFR-7, NFR-8, NFR-9, NFR-13, NFR-14, NFR-15, NFR-17, NFR-18, NFR-19, NFR-20, NFR-21, NFR-22, NFR-23
 
 ### Story 4.1: Implement Server-Side Input Validation
 `traces: { prd: NFR-3, arch: ADR-contracts }`
@@ -399,3 +427,76 @@ So that I can easily check my results on the go.
 **Given** I am viewing the same dashboard on a desktop with a 1280px wide viewport
 **When** I view the list of reports and the chart
 **Then** the layout adapts to use the available space effectively without looking stretched or broken.
+
+### Story 4.6: Implement Backend Observability Stack
+`traces: { prd: NFR-13, arch: ADR-observability }`
+
+As an Operator,
+I want the backend application to provide structured logs, performance metrics, and a health check endpoint,
+So that I can effectively monitor the application's health, diagnose issues, and manage it in production.
+
+**Acceptance Criteria:**
+
+**Given** the backend application is running
+**When** an API request is processed
+**Then** a structured JSON log line is emitted to standard output containing request details like path, method, status code, and a trace ID.
+**And** the log level can be configured via a `LOG_LEVEL` environment variable.
+**Given** the backend application is running
+**When** I make a GET request to the `/healthz` endpoint
+**Then** the application returns a 200 OK status code with a body indicating the application is healthy.
+**Given** the backend application is running
+**When** I make a GET request to the `/metrics` endpoint
+**Then** the application returns a response in Prometheus format, including metrics for HTTP request latency and counts.
+
+### Story 4.7: Harden Session and Credential Security
+`traces: { prd: NFR-8, arch: ADR-auth }`
+
+As a developer,
+I want to ensure admin passwords and user sessions are managed with strong security controls,
+So that user accounts and data are protected from common attacks.
+
+**Acceptance Criteria:**
+
+**Given** an Admin user is created or their password is set
+**When** the password `Hello@123!` is stored in the database
+**Then** it is hashed using a strong, salted algorithm like bcrypt.
+**Given** a user successfully logs in and receives a session JWT in a cookie
+**When** I inspect the `Set-Cookie` header
+**Then** the cookie has the `HttpOnly`, `Secure`, and `SameSite=Strict` flags set.
+**Given** the application is configured for deployment
+**When** I inspect the running environment
+**Then** secrets like the JWT signing key and database connection string are provided via environment variables, not hardcoded in the source.
+
+### Story 4.8: Implement Runtime Resilience and Performance Patterns
+`traces: { prd: NFR-22, arch: ADR-runtime-resilience }`
+
+As an Operator,
+I want the application to handle connections efficiently and shut down gracefully,
+So that the system is reliable during deployments and under load.
+
+**Acceptance Criteria:**
+
+**Given** the backend application is running and connected to the database
+**When** multiple concurrent requests are made
+**Then** database connections are managed through a connection pool, not opened/closed for each request.
+**Given** the application is running and processing a request
+**When** it receives a `SIGTERM` signal
+**Then** it stops accepting new incoming requests, waits for the in-flight request to complete, and then exits cleanly.
+**Given** the application is configured to connect to the database
+**When** the connection is established
+**Then** the database user account used by the application has only CRUD permissions on the necessary collections, not administrative privileges.
+
+### Story 4.9: Ensure Stateless Application Tier
+`traces: { prd: NFR-17, arch: ADR-auth }`
+
+As an Operator,
+I want the backend application to be stateless,
+So that I can scale it horizontally by adding or removing instances without losing user sessions.
+
+**Acceptance Criteria:**
+
+**Given** a user (Patient or Admin) is logged in and has a valid JWT
+**And** the backend server instance they are connected to is terminated
+**When** their next API request is routed to a different, healthy backend server instance
+**Then** the request is successfully authenticated using the JWT and processed.
+**And** no user session information is stored in the local memory or filesystem of the backend server.
