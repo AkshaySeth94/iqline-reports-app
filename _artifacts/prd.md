@@ -163,6 +163,20 @@ The Admin Panel forms for login, patient creation, and report management shall b
 - When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
 - The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
 
+### 4.6 User Interface Theme
+**Description:** To provide a modern aesthetic and improve visual comfort, especially in low-light environments, the entire application will adopt a dark theme. This applies to both the Patient Dashboard and the Admin Panel, ensuring a consistent user experience across all interfaces.
+
+**Functional Requirements:**
+
+#### FR-14: Dark Theme Implementation
+The application user interface for both the Patient Dashboard and the Admin Panel must consistently use a dark theme.
+
+**Consequences (testable):**
+- The primary background color of all application screens is a dark color (e.g., near-black or dark gray).
+- All text is rendered in a light color (e.g., white or light gray) with sufficient contrast against the dark background to meet accessibility standards (WCAG AA).
+- Interactive elements such as buttons, links, and form fields are styled with accent colors that are clearly visible and legible on the dark background.
+- Data visualizations, specifically the glucose trend chart, use a color palette that is optimized for clarity and readability on a dark background.
+
 ## 5. Non-Goals (Explicit)
 *   Integration with any SMS gateway for OTP delivery.
 *   Patient self-registration or profile management (e.g., changing their phone number).
@@ -175,7 +189,7 @@ The Admin Panel forms for login, patient creation, and report management shall b
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-13) listed above.
+*   All features and functional requirements (FR-1 to FR-14) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
 *   Basic security, logging, and architectural foundations for future expansion.
@@ -188,8 +202,8 @@ The Admin Panel forms for login, patient creation, and report management shall b
 
 ## 7. Success Metrics
 ### Primary
-*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12)
-*   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10, FR-13)
+*   **Patient Engagement**: 50% of Patients with at least one report log in to view their dashboard weekly. (Validates FR-1, FR-3, FR-5, FR-12, FR-14)
+*   **Admin Efficiency**: The median time to create and save a new patient report is under 60 seconds. (Validates FR-10, FR-13, FR-14)
 
 ### Secondary
 *   **Patient Adoption**: 80% of newly created Patients log in at least once within 72 hours of their first report being created.
