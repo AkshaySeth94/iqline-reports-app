@@ -163,6 +163,20 @@ The Admin Panel forms for login, patient creation, and report management shall b
 - When an Admin submits the "Create Report" or "Edit Report" form, the form data is sent via an API request to create or update the corresponding report record in the database.
 - The system provides user feedback upon successful form submission (e.g., a success message) or on failure (e.g., an error message from the API).
 
+### 4.6 Application Theme
+**Description:** The application will use a dark color scheme for all user interfaces, including the Patient Dashboard and the Admin Panel, to provide a modern and comfortable viewing experience, especially in low-light environments.
+
+**Functional Requirements:**
+
+#### FR-14: Dark Theme UI
+The application user interface for both Patients and Admins shall be presented using a dark theme.
+
+**Consequences (testable):**
+- The background colors across the Patient Dashboard and Admin Panel are dark (e.g., shades of dark grey or near-black).
+- Text colors are light (e.g., white or light grey) to ensure high contrast and readability against the dark background.
+- Interactive elements like buttons, links, and form fields are styled to be clearly visible and usable within the dark theme.
+- Charts in the Patient Dashboard are rendered with colors that are legible and aesthetically consistent with the dark theme.
+
 ## 5. Non-Goals (Explicit)
 *   Integration with any SMS gateway for OTP delivery.
 *   Patient self-registration or profile management (e.g., changing their phone number).
@@ -175,7 +189,7 @@ The Admin Panel forms for login, patient creation, and report management shall b
 
 ## 6. MVP Scope
 ### 6.1 In Scope
-*   All features and functional requirements (FR-1 to FR-13) listed above.
+*   All features and functional requirements (FR-1 to FR-14) listed above.
 *   A complete, two-sided application: a mobile-first web app for Patients and a secure Admin Panel for lab staff.
 *   Core functionality for one report type: Glucose Marker Report.
 *   Basic security, logging, and architectural foundations for future expansion.
