@@ -205,6 +205,7 @@ None at this time. Decisions required for v1 have been made and are documented i
 1.  `[ASSUMPTION: A static OTP is a sufficient security measure for the initial MVP launch, to be replaced by a dynamic, SMS-based OTP in a future version.]` (from Section 4.1)
 2.  `[ASSUMPTION: The initial Admin user credentials are for bootstrapping purposes only and the operator will change them immediately upon first login.]` (from Section 4.3)
 3.  `[ASSUMPTION: Patients cannot self-register; they must be created by an Admin.]` (from Section 4.4)
+4.  `[ASSUMPTION: The system is designed for an initial load of 100 concurrent users, with 95th percentile response times for all API endpoints remaining under 500ms.]` (from Section 10.2)
 
 ## 10. Cross-Cutting Non-Functional Requirements
 ### 10.1 Security
@@ -213,9 +214,27 @@ None at this time. Decisions required for v1 have been made and are documented i
 *   **NFR-3: Input Validation**: All user-provided input on both the client and server must be validated to prevent common vulnerabilities like XSS and injection attacks.
 *   **NFR-4: Audit Logging**: The system must log key security events, including successful/failed logins for both roles and all report creation/modification events by Admins. The log must include the timestamp, actor (e.g., Admin phone number), and the action performed.
 *   **NFR-5: Rate Limiting**: Authentication endpoints (`/login`) must be rate-limited to 5 requests per minute per IP address to protect against brute-force attacks.
+*   **NFR-8: Secure Credential Storage**: Admin passwords must be stored securely using a strong, one-way, salted hashing algorithm (e.g., bcrypt).
+*   **NFR-9: Secure Session Management**: Session cookies must be configured with `HttpOnly`, `Secure`, and `SameSite=Strict` flags to mitigate common session-based attacks.
+*   **NFR-10: Data Encryption at Rest**: All sensitive patient data stored in the database must be encrypted at rest.
+*   **NFR-11: OWASP Top 10 Protection**: The application must be protected against common web application vulnerabilities as outlined in the OWASP Top 10.
+*   **NFR-16: Dependency Security Scanning**: The project's third-party dependencies must be scanned for known vulnerabilities on a regular basis. High or critical severity vulnerabilities must be remediated before deployment.
+*   **NFR-19: Secure Secrets Management**: Application secrets, including database credentials, session secrets, and any third-party API keys, must not be stored in source code. They must be supplied to the application at runtime via environment variables or a dedicated secrets management service.
+*   **NFR-20: Principle of Least Privilege**: The database user account configured for the application must have the minimum set of permissions required for its operation. It should only be granted CRUD (Create, Read, Update, Delete) permissions on the specific collections it manages and should not have administrative privileges on the database.
 
-### 10.2 Architecture
+### 10.2 Scalability and Performance
 *   **NFR-6: Scalability**: The architecture must be designed to allow for the addition of new report types in the future without requiring a full rewrite of the core application. This implies a flexible database schema for reports.
+*   **NFR-12: System Performance**: The system must maintain acceptable performance under load. [ASSUMPTION: The system is designed for an initial load of 100 concurrent users, with 95th percentile response times for all API endpoints remaining under 500ms.]
+*   **NFR-17: Stateless Application Tier**: The backend application services must be stateless, storing any session or persistent data in an external store (e.g., database, cache). This allows for horizontal scaling by adding more instances of the application server.
+*   **NFR-21: Database Connection Pooling**: The application must use a database connection pool to efficiently manage connections to the MongoDB database, preventing connection exhaustion under load and reducing latency.
+*   **NFR-22: Graceful Shutdown**: The application must support graceful shutdown. Upon receiving a termination signal (e.g., SIGTERM), it should stop accepting new requests, finish processing in-flight requests, and then terminate. This prevents abrupt disconnection of clients during deployments.
 
 ### 10.3 User Experience
 *   **NFR-7: Mobile-First Responsive UI**: The Patient-facing application must be designed for a mobile-first experience (e.g., viewport width 360px) and be fully responsive to work on common desktop browser resolutions. The Admin Panel must be functional on standard desktop resolutions (e.g., 1280px width and above).
+
+### 10.4 Observability
+*   **NFR-13: Structured Application Logging**: The application backend must generate structured (e.g., JSON) logs for all critical errors, application lifecycle events, and business transactions. Logs should be directed to standard output to be collected by a logging agent.
+*   **NFR-14: Application Metrics**: The application must expose key performance indicators via a metrics endpoint (e.g., in Prometheus format). This includes request latency, request volume, and error rates (per endpoint).
+*   **NFR-15: Health Check Endpoint**: The application must provide a dedicated HTTP endpoint (e.g., `/healthz`) that monitoring systems can use to verify the application's operational status. It should return a 200 OK status if healthy and a 5xx status if not.
+*   **NFR-18: Distributed Tracing**: The application must support distributed tracing. All API requests should be instrumented to generate trace data, including a unique trace ID that is propagated across service calls and included in all related logs.
+*   **NFR-23: Configurable Log Levels**: The application's logging verbosity (e.g., DEBUG, INFO, WARN, ERROR) must be configurable at runtime (e.g., via an environment variable) without requiring a code change or redeployment.
