@@ -8,9 +8,13 @@
       "ts": "2026-05-25T08:59:05Z"
     },
     "prd": {
-      "status": "done",
+      "status": "awaiting_approval",
       "ts": "2026-05-25T09:00:39.689Z",
-      "commit": "44d5c77ff1aa"
+      "commit": "44d5c77ff1aa",
+      "awaitingPreSha": "90fbfe43ef5776bc6ae52d8bf1bf7910151550cf",
+      "awaitingPostSha": "cc3960fc6cec51a62f6431a7ba3962798bd9cb5b",
+      "awaitingSpecRef": "spec-c6f428767b9c",
+      "awaitingAt": "2026-05-25T09:00:50Z"
     },
     "architect": {
       "status": "pending"
