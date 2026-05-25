@@ -13,13 +13,9 @@
       "commit": "59cb7a91cf63"
     },
     "architect": {
-      "status": "awaiting_approval",
-      "ts": "2026-05-25T13:56:11.220Z",
-      "commit": "0cc8e9c25d2d",
-      "awaitingPreSha": "343a0ea02775ff07e348ea335dd1470d437e28ce",
-      "awaitingPostSha": "68617f96a693085c1e9d7e6014837c4e51dd246b",
-      "awaitingSpecRef": "spec-118cc64c69f3",
-      "awaitingAt": "2026-05-25T13:56:21Z"
+      "status": "approved",
+      "ts": "2026-05-25T13:58:42Z",
+      "commit": "0cc8e9c25d2d"
     },
     "epics": {
       "status": "pending"
