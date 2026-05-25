@@ -18,13 +18,9 @@
       "commit": "553154764916"
     },
     "epics": {
-      "status": "awaiting_approval",
-      "ts": "2026-05-25T14:16:10.141Z",
-      "commit": "7681a242591a",
-      "awaitingPreSha": "bd34d4f8afe925c1884555eea53420d2dd44da35",
-      "awaitingPostSha": "99dce4a6a29d5170ed3a8e60c95d512786c44997",
-      "awaitingSpecRef": "spec-118cc64c69f3",
-      "awaitingAt": "2026-05-25T14:16:23Z"
+      "status": "approved",
+      "ts": "2026-05-25T14:16:51Z",
+      "commit": "7681a242591a"
     },
     "dev": {
       "status": "pending"
