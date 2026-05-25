@@ -23,7 +23,8 @@
       "commit": "e3a4115a4df7"
     },
     "dev": {
-      "status": "pending"
+      "status": "done",
+      "ts": "2026-05-25T12:10:00.683Z"
     },
     "qa": {
       "status": "pending"
@@ -346,7 +347,7 @@
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-25T12:03:16.073Z",
+  "updatedAt": "2026-05-25T12:10:00.685Z",
   "runCount": 3,
   "priorRuns": [
     {

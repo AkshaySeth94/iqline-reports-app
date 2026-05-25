@@ -100,7 +100,7 @@ export default function PatientDashboardPage() {
               <span className="kpi-value">
                 {kpis.latest !== null ? kpis.latest : '—'}
                 {kpis.latest !== null && (
-                  <span className="kpi-meta" style={{ marginLeft: 6 }}>mg/dL</span>
+                  <span className="kpi-meta ml-1.5">mg/dL</span>
                 )}
               </span>
               <span className="kpi-meta">Most recent report value</span>
@@ -110,7 +110,7 @@ export default function PatientDashboardPage() {
               <span className="kpi-value">
                 {kpis.average !== null ? kpis.average : '—'}
                 {kpis.average !== null && (
-                  <span className="kpi-meta" style={{ marginLeft: 6 }}>mg/dL</span>
+                  <span className="kpi-meta ml-1.5">mg/dL</span>
                 )}
               </span>
               <span className="kpi-meta">Across all reports</span>
@@ -168,9 +168,9 @@ export default function PatientDashboardPage() {
                         .map((report) => (
                           <tr key={report._id}>
                             <td>{formatDate(report.reportDate)}</td>
-                            <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            <td className="tabular-nums">
                               <strong>{report.data.glucoseValue}</strong>
-                              <span className="muted" style={{ marginLeft: 4 }}>mg/dL</span>
+                              <span className="muted ml-1">mg/dL</span>
                             </td>
                             <td>{statusBadge(report.status)}</td>
                             <td className="muted">{report.notes || '—'}</td>
