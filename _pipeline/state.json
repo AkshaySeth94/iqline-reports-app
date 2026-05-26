@@ -4,26 +4,26 @@
   "specRef": "spec-118cc64c69f3",
   "stages": {
     "spec": {
-      "status": "approved",
+      "status": "pending",
       "ts": "2026-05-25T14:08:28Z"
     },
     "prd": {
-      "status": "approved",
+      "status": "pending",
       "ts": "2026-05-25T14:12:11Z",
       "commit": "8527f29b99f8"
     },
     "architect": {
-      "status": "approved",
+      "status": "pending",
       "ts": "2026-05-25T14:14:37Z",
       "commit": "553154764916"
     },
     "epics": {
-      "status": "approved",
+      "status": "pending",
       "ts": "2026-05-25T14:16:51Z",
       "commit": "7681a242591a"
     },
     "dev": {
-      "status": "approved",
+      "status": "pending",
       "ts": "2026-05-25T14:21:35Z",
       "commit": "6c3ef8ee8ca3"
     },
