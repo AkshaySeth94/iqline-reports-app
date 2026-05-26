@@ -28,7 +28,8 @@
       "commit": "6c3ef8ee8ca3"
     },
     "qa": {
-      "status": "pending"
+      "status": "approved",
+      "ts": "2026-05-25T15:31:03Z"
     }
   },
   "bugLoop": {
@@ -363,7 +364,7 @@
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-25T14:35:51.902Z",
+  "updatedAt": "2026-05-25T15:26:02.153Z",
   "runCount": 3,
   "priorRuns": [
     {

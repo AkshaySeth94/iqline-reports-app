@@ -1,12 +1,12 @@
 {
-  "id": "bug-0010",
-  "runId": "jenkins-Agentic_SDLC-100",
+  "id": "bug-0016",
+  "runId": "jenkins-Agentic_SDLC-102",
   "story": "Story-2.3",
   "finding": "Route smoke failed (HTTP 4xx/5xx from a discovered page)",
   "source": "test-e2e",
   "severity": "high",
   "evidence": "route-smoke detected HTTP-level routing failures:\n  (smoke-runner) → exit 1\n\n--- container stdout/stderr (truncated) ---\nroute-smoke: routes to verify: /, /panel, /login, /dashboard\n\nroute-smoke: next dev failed to become ready within 90000ms\n--- next.js output (tail) ---\n\n> frontend@0.1.0 dev\n> next dev -p 3000\n\n  ▲ Next.js 14.2.3\n  - Local:        http://localhost:3000\n\n ✓ Starting...\nError: EACCES: permission denied, mkdir '/workspace/frontend/.next'\n    at async Object.mkdir (node:internal/fs/promises:858:10)\n    at async HotReloaderWebpack.start (/workspace/node_modules/next/dist/server/dev/hot-reloader-webpack.js:610:9)\n    at async startWatcher (/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js:156:5)\n    at async setupDevBundler (/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js:775:20)\n    at async Span.traceAsyncFn (/workspace/node_modules/next/dist/trace/trace.js:154:20)\n    at async initialize (/workspace/node_modules/next/dist/server/lib/router-server.js:78:30)\n    at async Server.<anonymous> (/workspace/node_modules/next/dist/server/lib/start-server.js:249:36) {\n  errno: -13,\n  code: 'EACCES',\n  syscall: 'mkdir',\n  path: '/workspace/frontend/.next'\n}\n\u001b[?25h",
-  "status": "fixed",
+  "status": "open",
   "bugClass": "app",
-  "ts": "2026-05-25T15:16:08.463Z"
+  "ts": "2026-05-25T15:29:08.834Z"
 }

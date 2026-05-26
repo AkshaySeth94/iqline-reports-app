@@ -1,36 +1,23 @@
 # QA Augmentation Report
 
-## Bug Fixes
+## Coverage assessment
+No new stories were introduced in this development cycle. This run addresses a high-priority bug (`bug-0015`) that caused recurring, intermittent failures in the backend end-to-end test suite. The operator feedback indicated that previous fixes were addressing symptoms rather than the root cause.
 
-This run addresses a high-priority bug (`bug-0009`) from the previous QA cycle, which caused the entire test suite to fail inside the build container.
-
-*   **Bug ID**: `bug-0009`
-*   **Class**: `app`, `test-e2e`
-*   **Symptom**: `Test suite failed inside build container`.
-*   **Root Cause Analysis**: The operator's feedback noted an oscillating failure pattern in `test-e2e/app`, indicating a fundamental, recurring issue. The root cause was identified in the backend end-to-end test setup (`backend/test/app.e2e-spec.ts`). The test initializes the full NestJS application by importing `AppModule`. This module is configured to connect to a MongoDB database on startup. However, the test environment is an isolated container with no database available, causing the application initialization to fail and the test suite to crash. The existing test correctly mocked the database health check logic (`MongooseHealthIndicator`), but it did not prevent the application itself from attempting a database connection during its startup sequence. This external dependency on a database made the test suite fragile and unable to run in the CI environment.
-*   **Fix Applied**: To address the root cause and make the e2e tests self-contained and robust, an in-memory MongoDB server is now used for the test run. The `mongodb-memory-server` library was added as a dev dependency. The e2e test suite now programmatically starts an in-memory MongoDB instance before tests run and stops it afterward. The application under test is configured to use this in-memory database, ensuring that the app can initialize successfully without any external dependencies. This change makes the e2e tests reliable and independent of the execution environment, directly resolving the instability noted by the operator.
-
-## Coverage assessment for New Stories
-
-No new stories were introduced in this development cycle. The focus was on fixing the critical test suite stability bug (`bug-0009`).
+The existing test suite's coverage of functional requirements remains as documented in previous QA reports. The fix applied in this run aims to improve the reliability of the E2E test suite itself by addressing the underlying race condition.
 
 ## Additions
+The primary addition is a modification to the backend E2E test suite to resolve its instability.
 
-1.  **`backend/package.json`**:
-    *   **Gap Filled**: The e2e test suite lacked a self-contained database for testing, causing failures in CI.
-    *   **Modification**: Added `mongodb-memory-server` to `devDependencies` to provide an in-memory MongoDB for tests.
-
-2.  **`backend/test/app.e2e-spec.ts`**:
-    *   **Gap Filled**: The test was not self-contained, attempting to connect to a non-existent database.
-    *   **Modification**: The test file was updated to import `mongodb-memory-server`. It now starts an in-memory server in `beforeAll`, provides its connection URI to the NestJS application via an environment variable, and shuts down the server in `afterAll`.
-
-3.  **`_artifacts/deployment-doc.md`**:
-    *   **Gap Filled**: The documentation of development dependencies was incomplete.
-    *   **Modification**: Added `mongodb-memory-server` to the `Backend devDependencies` table to reflect the new dependency used for testing.
+1.  **`backend/test/app.e2e-spec.ts`**:
+    *   **Gap Filled**: The E2E test suite was failing intermittently (`bug-0015`, class `test-e2e/app`). The root cause is a race condition where the test runner begins executing tests before the NestJS application has fully initialized and established a connection to the in-memory MongoDB database. This results in the `/healthz` endpoint, which checks the database connection, returning a 5xx error, causing the test to fail. Simply increasing timeouts is a brittle fix that only masks this underlying problem.
+    *   **Modification**: An active readiness probe has been added to the `beforeAll` setup hook. After the application is initialized with `app.init()`, the test will now actively poll the `/api/v1/healthz` endpoint for up to 15 seconds. It waits for a `200 OK` status and confirmation that the `mongoose` connection status is `'up'`. The test suite only proceeds once the application is confirmed to be in a healthy, testable state. If the application does not become healthy within the time limit, the entire test suite will fail with a clear error message.
+    *   **Justification**: This change directly addresses the root cause of the test flakiness. Instead of relying on arbitrary timeouts, it ensures tests run against a known-good application state. This aligns with the operator's feedback to reconsider the architectural approach for this bug class by making the test setup itself more resilient and deterministic.
 
 ## Risks the test suite does not address
 
-This change significantly reduces the risk of CI failures due to environment inconsistencies. The primary risks remain the same as in previous reports:
+The risks remain the same as the previous run, as no new feature tests were added.
 
-1.  **Limited Test Scope**: The e2e test suite only covers observability endpoints. It does not cover authentication or business logic endpoints, which should be added in the future.
-2.  **In-Memory vs. Real DB**: While `mongodb-memory-server` is excellent for testing, it may behave differently from a production MongoDB instance in some edge cases (e.g., storage engine features, performance characteristics). This risk is acceptable for the current scope of tests.
+1.  **Limited Frontend Coverage**: Only the login page has been tested. All other components, pages, and user flows (e.g., dashboard data display, admin panel forms) remain untested.
+2.  **No E2E Business Logic Tests**: The existing E2E test covers infrastructure health endpoints. It does not cover full user flows like "log in, create a patient, create a report".
+3.  **Advanced Security/Resilience**: Features like rate limiting (Story 4.3) and graceful shutdown (Story 4.8) are not covered by automated tests.
+4.  **Visual and Responsive Testing**: The mobile-first UI (Story 4.5) is not verified. There are no visual regression or responsive design tests.
