@@ -27,3 +27,9 @@ fix: ensure the patient login form, dashboard, and admin panel are functional wi
 ## Change request — Run #3 (2026-05-25)
 
 I want to focus on non functional requirements in which I want this project to be scalable, secure and have necessary observability incorporated.
+
+---
+
+## Change request — Run #3 (2026-05-26)
+
+I want to make sure that this infra is scalable to upto 1000 concurrent users. Review the code and tell me how can i do that and if everything looks good then dont change anything.

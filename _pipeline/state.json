@@ -4,8 +4,8 @@
   "specRef": "spec-118cc64c69f3",
   "stages": {
     "spec": {
-      "status": "pending",
-      "ts": "2026-05-25T14:08:28Z"
+      "status": "done",
+      "ts": "2026-05-26T07:58:07.621Z"
     },
     "prd": {
       "status": "pending",
@@ -360,10 +360,15 @@
       "story": "Story-4.9",
       "prd": "NFR-17",
       "arch": "ADR-auth"
+    },
+    {
+      "story": "Story-1.9",
+      "prd": "FR-17",
+      "arch": "ADR-creds"
     }
   ],
   "createdAt": "2026-05-24T21:55:47.142Z",
-  "updatedAt": "2026-05-25T14:35:51.902Z",
+  "updatedAt": "2026-05-26T07:58:07.621Z",
   "runCount": 3,
   "priorRuns": [
     {
